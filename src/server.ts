@@ -1,6 +1,8 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import { connectDatabase } from './config/database';
+import './models'; // Import all models to establish associations
 
 // Load environment variables
 dotenv.config();
@@ -25,14 +27,33 @@ app.get('/health', (_req, res) => {
 app.get('/api/v1', (_req, res) => {
   res.json({
     message: 'MedConnect API v1',
-    status: 'Setup complete'
+    status: 'Database models loaded and ready',
+    endpoints: {
+      health: '/health',
+      api: '/api/v1'
+    }
   });
 });
 
 // Start server
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`📊 Health check: http://localhost:${PORT}/health`);
-});
+const startServer = async () => {
+  try {
+    // Connect to database
+    await connectDatabase();
+    
+    // Start HTTP server
+    app.listen(PORT, () => {
+      console.log(`🚀 MedConnect server running on port ${PORT}`);
+      console.log(`📊 Health check: http://localhost:${PORT}/health`);
+      console.log(`🔗 API Base: http://localhost:${PORT}/api/v1`);
+      console.log(`🗄️ Database: Connected and models loaded`);
+    });
+  } catch (error) {
+    console.error('Failed to start server:', error);
+    process.exit(1);
+  }
+};
+
+startServer();
 
 export default app;
