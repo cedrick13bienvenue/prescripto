@@ -6,6 +6,7 @@ import './models'; // Import all models to establish associations
 
 // Import routes
 import authRoutes from './routes/auth';
+import patientRoutes from './routes/patients';
 
 // Load environment variables
 dotenv.config();
@@ -28,6 +29,7 @@ app.get('/health', (_req, res) => {
 
 // API routes
 app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/patients', patientRoutes);
 
 // Basic API endpoint
 app.get('/api/v1', (_req, res) => {
@@ -46,6 +48,17 @@ app.get('/api/v1', (_req, res) => {
         changePassword: 'PUT /api/v1/auth/change-password',
         deactivateUser: 'PUT /api/v1/auth/users/:userId/deactivate (Admin)',
         reactivateUser: 'PUT /api/v1/auth/users/:userId/reactivate (Admin)'
+      },
+      patientEndpoints: {
+        register: 'POST /api/v1/patients/register',
+        search: 'GET /api/v1/patients/search?query=...',
+        getById: 'GET /api/v1/patients/:patientId',
+        update: 'PUT /api/v1/patients/:patientId',
+        getHistory: 'GET /api/v1/patients/:patientId/history (Doctor/Admin)',
+        createVisit: 'POST /api/v1/patients/:patientId/visits (Doctor/Admin)',
+        createPrescription: 'POST /api/v1/patients/:patientId/prescriptions (Doctor/Admin)',
+        getPrescriptions: 'GET /api/v1/patients/:patientId/prescriptions (Doctor/Admin)',
+        crossHospitalLookup: 'GET /api/v1/patients/reference/:referenceNumber'
       }
     }
   });
@@ -63,6 +76,7 @@ const startServer = async () => {
       console.log(`📊 Health check: http://localhost:${PORT}/health`);
       console.log(`🔗 API Base: http://localhost:${PORT}/api/v1`);
       console.log(`🔐 Auth API: http://localhost:${PORT}/api/v1/auth`);
+      console.log(`👥 Patient API: http://localhost:${PORT}/api/v1/patients`);
       console.log(`🗄️ Database: Connected and models loaded`);
     });
   } catch (error) {
