@@ -7,6 +7,7 @@ import './models'; // Import all models to establish associations
 // Import routes
 import authRoutes from './routes/auth';
 import patientRoutes from './routes/patients';
+import { swaggerRouter } from './routes/swaggerRoutes';
 
 // Load environment variables
 dotenv.config();
@@ -30,12 +31,17 @@ app.get('/health', (_req, res) => {
 // API routes
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/patients', patientRoutes);
+app.use('/api/v1', swaggerRouter);
 
 // Basic API endpoint
 app.get('/api/v1', (_req, res) => {
   res.json({
     message: 'MedConnect API v1',
     status: 'Authentication system ready',
+    documentation: {
+      swagger: '/api/v1/docs',
+      swaggerJson: '/api/v1/docs.json'
+    },
     endpoints: {
       health: '/health',
       api: '/api/v1',
