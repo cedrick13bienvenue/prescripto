@@ -1,19 +1,11 @@
 import swaggerJsdoc from 'swagger-jsdoc';
-
-// Import path definitions
-import authPaths from './paths/auth';
-import patientPaths from './paths/patients';
-
-// Import schema definitions
-import authSchemas from './schemas/auth';
-import patientSchemas from './schemas/patients';
-import commonSchemas from './schemas/common';
+import path from 'path';
 
 const options: any = {
   definition: {
     openapi: '3.0.0',
     info: {
-      title: 'MedConnect API Documentation',
+      title: 'medConnect-API documentation',
       version: '1.0.0',
       description: 'Digital Prescription & Patient Records System API',
       contact: {
@@ -43,20 +35,17 @@ const options: any = {
           bearerFormat: 'JWT',
           description: 'JWT token for authentication'
         }
-      },
-      schemas: {
-        ...commonSchemas,
-        ...authSchemas,
-        ...patientSchemas
       }
-    },
-
-    paths: {
-      ...authPaths,
-      ...patientPaths
     }
   },
-  apis: [] // We're using YAML files instead of JSDoc comments
+  // Point to the YAML files in paths/ and schemas/ folders
+  apis: [
+    path.join(__dirname, 'paths/auth.yaml'),
+    path.join(__dirname, 'paths/patients.yaml'),
+    path.join(__dirname, 'schemas/auth.yaml'),
+    path.join(__dirname, 'schemas/patients.yaml'),
+    path.join(__dirname, 'schemas/common.yaml')
+  ]
 };
 
 export const swaggerSpec = swaggerJsdoc(options);
