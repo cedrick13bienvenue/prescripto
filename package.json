@@ -3,14 +3,18 @@
   "version": "1.0.0",
   "description": "Digital Prescription & Patient Records System Backend",
   "main": "dist/server.js",
-  "scripts": {
-    "start": "node dist/server.js",
-    "dev": "nodemon src/server.ts",
-    "build": "tsc",
-    "db:migrate": "sequelize-cli db:migrate",
-    "db:seed": "sequelize-cli db:seed:all",
-    "db:reset": "sequelize-cli db:drop && sequelize-cli db:create && sequelize-cli db:migrate"
-  },
+"scripts": {
+  "start": "node dist/server.js",
+  "dev": "nodemon src/server.ts",
+  "build": "tsc",
+  "db:migrate": "sequelize-cli db:migrate",
+  "db:migrate:undo": "sequelize-cli db:migrate:undo",
+  "db:migrate:undo:all": "sequelize-cli db:migrate:undo:all",
+  "db:seed": "sequelize-cli db:seed:all",
+  "db:seed:undo": "sequelize-cli db:seed:undo:all",
+  "db:reset": "sequelize-cli db:drop && sequelize-cli db:create && sequelize-cli db:migrate",
+  "db:fresh": "sequelize-cli db:drop && sequelize-cli db:create && sequelize-cli db:migrate && sequelize-cli db:seed:all"
+},
   "keywords": [
     "healthcare",
     "prescriptions",

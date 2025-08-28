@@ -47,10 +47,10 @@ export const connectDatabase = async (): Promise<void> => {
     console.log('✅ Database connection established successfully');
     
     // Sync database (in development - will be replaced with migrations later)
-    if (process.env['NODE_ENV'] === 'development') {
-      await sequelize.sync({ alter: true });
-      console.log('🔄 Database sync completed');
-    }
+    // if (process.env['NODE_ENV'] === 'development') {
+    //   await sequelize.sync({ alter: true });
+    //   console.log('🔄 Database sync completed');
+    // }
   } catch (error) {
     console.error('❌ Unable to connect to the database:', error);
     throw error;
