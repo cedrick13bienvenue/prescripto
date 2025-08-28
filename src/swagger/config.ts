@@ -27,7 +27,7 @@ const options: any = {
     },
     servers: [
       {
-        url: 'http://localhost:3000/api/v1',
+        url: 'http://localhost:3300/api/v1',
         description: 'Development server'
       },
       {
@@ -50,11 +50,7 @@ const options: any = {
         ...patientSchemas
       }
     },
-    security: [
-      {
-        bearerAuth: []
-      }
-    ],
+
     paths: {
       ...authPaths,
       ...patientPaths

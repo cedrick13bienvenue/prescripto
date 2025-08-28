@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import { connectDatabase } from './config/database';
+import { connectDatabase } from './database/config/database';
 import './models'; // Import all models to establish associations
 
 // Import routes
