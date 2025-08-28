@@ -77,14 +77,15 @@ const startServer = async () => {
     await connectDatabase();
     
     // Start HTTP server
-    app.listen(PORT, () => {
-      console.log(`🚀 MedConnect server running on port ${PORT}`);
-      console.log(`📊 Health check: http://localhost:${PORT}/health`);
-      console.log(`🔗 API Base: http://localhost:${PORT}/api/v1`);
-      console.log(`🔐 Auth API: http://localhost:${PORT}/api/v1/auth`);
-      console.log(`👥 Patient API: http://localhost:${PORT}/api/v1/patients`);
-      console.log(`🗄️ Database: Connected and models loaded`);
-    });
+app.listen(PORT, () => {
+  console.log(`🚀 MedConnect server running on port ${PORT}`);
+  console.log(`📊 Health check: http://localhost:${PORT}/health`);
+  console.log(`🔗 API Base: http://localhost:${PORT}/api/v1`);
+  console.log(`🔐 Auth API: http://localhost:${PORT}/api/v1/auth`);
+  console.log(`👥 Patient API: http://localhost:${PORT}/api/v1/patients`);
+  console.log(`📚 API Documentation: http://localhost:${PORT}/api/v1/docs`);
+  console.log(`🗄️ Database: Connected and models loaded`);
+});
   } catch (error) {
     console.error('Failed to start server:', error);
     process.exit(1);
