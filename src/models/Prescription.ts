@@ -1,5 +1,5 @@
 import { Model, DataTypes, UUIDV4 } from 'sequelize';
-import { sequelize } from '../config/database';
+import { sequelize } from '../database/config/database';
 import Patient from './Patient';
 import Doctor from './Doctor';
 import MedicalVisit from './MedicalVisit';

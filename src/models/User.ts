@@ -1,5 +1,5 @@
 import { Model, DataTypes, UUIDV4 } from 'sequelize';
-import { sequelize } from '../config/database';
+import { sequelize } from '../database/config/database';
 import bcrypt from 'bcryptjs';
 
 export enum UserRole {
