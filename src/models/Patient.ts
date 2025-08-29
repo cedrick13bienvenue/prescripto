@@ -19,7 +19,7 @@ export interface PatientAttributes {
   updatedAt?: Date;
 }
 
-export interface PatientCreationAttributes extends Omit<PatientAttributes, 'id' | 'referenceNumber' | 'createdAt' | 'updatedAt'> {}
+export type PatientCreationAttributes = Omit<PatientAttributes, 'id' | 'referenceNumber' | 'createdAt' | 'updatedAt'>
 
 class Patient extends Model<PatientAttributes, PatientCreationAttributes> implements PatientAttributes {
   public id!: string;
@@ -38,7 +38,7 @@ class Patient extends Model<PatientAttributes, PatientCreationAttributes> implem
   public readonly updatedAt!: Date;
 
   // Generate reference number
-  public static generateReferenceNumber(): string {
+  public static generateReferenceNumber (): string {
     const date = new Date();
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -119,7 +119,7 @@ Patient.init(
         }
       },
     },
-  }
+  },
 );
 
 // Associations

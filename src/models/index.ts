@@ -17,7 +17,7 @@ export {
   Prescription,
   PrescriptionItem,
   QRCode,
-  PharmacyLog
+  PharmacyLog,
 };
 
 // Export enums and types
@@ -35,5 +35,5 @@ export default {
   Prescription,
   PrescriptionItem,
   QRCode,
-  PharmacyLog
+  PharmacyLog,
 };

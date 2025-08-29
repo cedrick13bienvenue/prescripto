@@ -37,7 +37,7 @@ export const sequelize = new Sequelize(
     logging: dbConfig.logging,
     pool: dbConfig.pool,
     define: dbConfig.define,
-  }
+  },
 );
 
 // Test database connection
@@ -45,7 +45,7 @@ export const connectDatabase = async (): Promise<void> => {
   try {
     await sequelize.authenticate();
     console.log('✅ Database connection established successfully');
-    
+
     // Sync database (in development - will be replaced with migrations later)
     // if (process.env['NODE_ENV'] === 'development') {
     //   await sequelize.sync({ alter: true });

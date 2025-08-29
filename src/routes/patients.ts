@@ -1,8 +1,8 @@
 import { Router } from 'express';
 import { PatientController } from '../controllers/patientController';
-import { 
-  authenticateToken, 
-  requireRole 
+import {
+  authenticateToken,
+  requireRole,
 } from '../middleware/auth';
 import { UserRole } from '../models';
 

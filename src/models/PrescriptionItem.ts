@@ -13,7 +13,7 @@ export interface PrescriptionItemAttributes {
   createdAt?: Date;
 }
 
-export interface PrescriptionItemCreationAttributes extends Omit<PrescriptionItemAttributes, 'id' | 'createdAt'> {}
+export type PrescriptionItemCreationAttributes = Omit<PrescriptionItemAttributes, 'id' | 'createdAt'>
 
 class PrescriptionItem extends Model<PrescriptionItemAttributes, PrescriptionItemCreationAttributes> implements PrescriptionItemAttributes {
   public id!: string;
@@ -66,7 +66,7 @@ PrescriptionItem.init(
     sequelize,
     tableName: 'prescription_items',
     modelName: 'PrescriptionItem',
-  }
+  },
 );
 
 // Associations

@@ -13,7 +13,7 @@ export interface QRCodeAttributes {
   createdAt?: Date;
 }
 
-export interface QRCodeCreationAttributes extends Omit<QRCodeAttributes, 'id' | 'scanCount' | 'createdAt'> {}
+export type QRCodeCreationAttributes = Omit<QRCodeAttributes, 'id' | 'scanCount' | 'createdAt'>
 
 class QRCode extends Model<QRCodeAttributes, QRCodeCreationAttributes> implements QRCodeAttributes {
   public id!: string;
@@ -26,12 +26,12 @@ class QRCode extends Model<QRCodeAttributes, QRCodeCreationAttributes> implement
   public readonly createdAt!: Date;
 
   // Check if QR code is expired
-  public isExpired(): boolean {
+  public isExpired (): boolean {
     return new Date() > this.expiresAt;
   }
 
   // Mark as used
-  public markAsUsed(): void {
+  public markAsUsed (): void {
     this.isUsed = true;
     this.scanCount += 1;
   }
@@ -80,7 +80,7 @@ QRCode.init(
     sequelize,
     tableName: 'qr_codes',
     modelName: 'QRCode',
-  }
+  },
 );
 
 // Associations

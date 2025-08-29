@@ -1,9 +1,9 @@
 import { Router } from 'express';
 import { AuthController } from '../controllers/authController';
-import { 
-  authenticateToken, 
-  requireAdmin, 
-  requireRole 
+import {
+  authenticateToken,
+  requireAdmin,
+  requireRole,
 } from '../middleware/auth';
 
 const router = Router();

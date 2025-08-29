@@ -23,7 +23,7 @@ export interface MedicalVisitAttributes {
   createdAt?: Date;
 }
 
-export interface MedicalVisitCreationAttributes extends Omit<MedicalVisitAttributes, 'id' | 'createdAt'> {}
+export type MedicalVisitCreationAttributes = Omit<MedicalVisitAttributes, 'id' | 'createdAt'>
 
 class MedicalVisit extends Model<MedicalVisitAttributes, MedicalVisitCreationAttributes> implements MedicalVisitAttributes {
   public id!: string;
@@ -96,7 +96,7 @@ MedicalVisit.init(
     sequelize,
     tableName: 'medical_visits',
     modelName: 'MedicalVisit',
-  }
+  },
 );
 
 // Associations

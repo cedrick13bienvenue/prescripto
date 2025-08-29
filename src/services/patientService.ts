@@ -65,7 +65,7 @@ export interface PrescriptionItemData {
 
 export class PatientService {
   // Patient registration with reference number generation
-  static async registerPatient(data: PatientRegistrationData): Promise<PatientProfile> {
+  static async registerPatient (data: PatientRegistrationData): Promise<PatientProfile> {
     // Create user account first
     const user = await User.create({
       email: data.email,
@@ -73,7 +73,7 @@ export class PatientService {
       fullName: data.fullName,
       role: UserRole.PATIENT,
       phone: data.phone,
-      isActive: true
+      isActive: true,
     });
 
     // Create patient profile (reference number will be auto-generated)
@@ -87,7 +87,7 @@ export class PatientService {
       allergies: data.allergies || [],
       existingConditions: data.existingConditions || [],
       emergencyContact: data.emergencyContact || '',
-      emergencyPhone: data.emergencyPhone || ''
+      emergencyPhone: data.emergencyPhone || '',
     });
 
     return {
@@ -104,21 +104,21 @@ export class PatientService {
       emergencyPhone: patient.emergencyPhone,
       phone: data.phone,
       createdAt: patient.createdAt,
-      updatedAt: patient.updatedAt
+      updatedAt: patient.updatedAt,
     };
   }
 
   // Get patient by reference number (cross-hospital lookup)
-  static async getPatientByReference(referenceNumber: string): Promise<PatientProfile | null> {
+  static async getPatientByReference (referenceNumber: string): Promise<PatientProfile | null> {
     const patient = await Patient.findOne({
       where: { referenceNumber },
       include: [
         {
           model: User,
           as: 'user',
-          attributes: ['phone', 'isActive']
-        }
-      ]
+          attributes: ['phone', 'isActive'],
+        },
+      ],
     });
 
     if (!patient) {
@@ -145,20 +145,20 @@ export class PatientService {
       emergencyPhone: patient.emergencyPhone,
       phone: userData.phone,
       createdAt: patient.createdAt,
-      updatedAt: patient.updatedAt
+      updatedAt: patient.updatedAt,
     };
   }
 
   // Get patient by ID
-  static async getPatientById(patientId: string): Promise<PatientProfile | null> {
+  static async getPatientById (patientId: string): Promise<PatientProfile | null> {
     const patient = await Patient.findByPk(patientId, {
       include: [
         {
           model: User,
           as: 'user',
-          attributes: ['phone', 'isActive']
-        }
-      ]
+          attributes: ['phone', 'isActive'],
+        },
+      ],
     });
 
     if (!patient) {
@@ -185,12 +185,12 @@ export class PatientService {
       emergencyPhone: patient.emergencyPhone,
       phone: userData.phone,
       createdAt: patient.createdAt,
-      updatedAt: patient.updatedAt
+      updatedAt: patient.updatedAt,
     };
   }
 
   // Update patient profile
-  static async updatePatient(patientId: string, updateData: Partial<PatientProfile>): Promise<PatientProfile> {
+  static async updatePatient (patientId: string, updateData: Partial<PatientProfile>): Promise<PatientProfile> {
     const patient = await Patient.findByPk(patientId);
     if (!patient) {
       throw new Error('Patient not found');
@@ -198,7 +198,7 @@ export class PatientService {
 
     // Filter out fields that shouldn't be updated directly
     const { phone, ...patientUpdateData } = updateData;
-    
+
     // Update patient data
     await patient.update(patientUpdateData);
 
@@ -206,7 +206,7 @@ export class PatientService {
     if (phone) {
       await User.update(
         { phone },
-        { where: { id: patient.userId } }
+        { where: { id: patient.userId } },
       );
     }
 
@@ -214,7 +214,7 @@ export class PatientService {
   }
 
   // Create medical visit
-  static async createMedicalVisit(data: MedicalVisitData): Promise<MedicalVisit> {
+  static async createMedicalVisit (data: MedicalVisitData): Promise<MedicalVisit> {
     // Verify patient exists
     const patient = await Patient.findByPk(data.patientId);
     if (!patient) {
@@ -223,7 +223,7 @@ export class PatientService {
 
     // Verify doctor exists
     const doctor = await User.findOne({
-      where: { id: data.doctorId, role: UserRole.DOCTOR }
+      where: { id: data.doctorId, role: UserRole.DOCTOR },
     });
     if (!doctor) {
       throw new Error('Doctor not found');
@@ -238,24 +238,24 @@ export class PatientService {
       symptoms: data.symptoms,
       diagnosis: data.diagnosis,
       treatmentNotes: data.treatmentNotes,
-      recommendations: data.recommendations
+      recommendations: data.recommendations,
     });
 
     return visit;
   }
 
   // Get patient medical history
-  static async getPatientMedicalHistory(patientId: string): Promise<any> {
+  static async getPatientMedicalHistory (patientId: string): Promise<any> {
     const visits = await MedicalVisit.findAll({
       where: { patientId },
       include: [
         {
           model: User,
           as: 'doctor',
-          attributes: ['fullName', 'email']
-        }
+          attributes: ['fullName', 'email'],
+        },
       ],
-      order: [['visitDate', 'DESC']]
+      order: [['visitDate', 'DESC']],
     });
 
     const prescriptions = await Prescription.findAll({
@@ -264,14 +264,14 @@ export class PatientService {
         {
           model: User,
           as: 'doctor',
-          attributes: ['fullName', 'email']
+          attributes: ['fullName', 'email'],
         },
         {
           model: PrescriptionItem,
-          as: 'items'
-        }
+          as: 'items',
+        },
       ],
-      order: [['createdAt', 'DESC']]
+      order: [['createdAt', 'DESC']],
     });
 
     return {
@@ -285,7 +285,7 @@ export class PatientService {
         treatmentNotes: visit.treatmentNotes,
         recommendations: visit.recommendations,
         doctor: (visit as any).doctor,
-        createdAt: visit.createdAt
+        createdAt: visit.createdAt,
       })),
       prescriptions: prescriptions.map(prescription => ({
         id: prescription.id,
@@ -295,13 +295,13 @@ export class PatientService {
         status: prescription.status,
         items: (prescription as any).items,
         doctor: (prescription as any).doctor,
-        createdAt: prescription.createdAt
-      }))
+        createdAt: prescription.createdAt,
+      })),
     };
   }
 
   // Create prescription
-  static async createPrescription(data: PrescriptionData): Promise<Prescription> {
+  static async createPrescription (data: PrescriptionData): Promise<Prescription> {
     // Verify patient exists
     const patient = await Patient.findByPk(data.patientId);
     if (!patient) {
@@ -310,7 +310,7 @@ export class PatientService {
 
     // Verify doctor exists
     const doctor = await User.findOne({
-      where: { id: data.doctorId, role: UserRole.DOCTOR }
+      where: { id: data.doctorId, role: UserRole.DOCTOR },
     });
     if (!doctor) {
       throw new Error('Doctor not found');
@@ -330,7 +330,7 @@ export class PatientService {
       diagnosis: data.diagnosis,
       doctorNotes: data.doctorNotes,
       status: PrescriptionStatus.PENDING,
-      qrCodeHash: `QR-${Date.now()}-${Math.random().toString(36).substr(2, 9)}` // Temporary placeholder
+      qrCodeHash: `QR-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, // Temporary placeholder
     });
 
     // Create prescription items
@@ -341,7 +341,7 @@ export class PatientService {
         dosage: itemData.dosage,
         frequency: itemData.frequency,
         quantity: itemData.quantity,
-        instructions: itemData.instructions || ''
+        instructions: itemData.instructions || '',
       });
     }
 
@@ -349,21 +349,21 @@ export class PatientService {
   }
 
   // Get patient prescriptions
-  static async getPatientPrescriptions(patientId: string): Promise<any[]> {
+  static async getPatientPrescriptions (patientId: string): Promise<any[]> {
     const prescriptions = await Prescription.findAll({
       where: { patientId },
       include: [
         {
           model: User,
           as: 'doctor',
-          attributes: ['fullName', 'email']
+          attributes: ['fullName', 'email'],
         },
         {
           model: PrescriptionItem,
-          as: 'items'
-        }
+          as: 'items',
+        },
       ],
-      order: [['createdAt', 'DESC']]
+      order: [['createdAt', 'DESC']],
     });
 
     return prescriptions.map(prescription => ({
@@ -374,29 +374,29 @@ export class PatientService {
       status: prescription.status,
       items: (prescription as any).items,
       doctor: (prescription as any).doctor,
-      createdAt: prescription.createdAt
+      createdAt: prescription.createdAt,
     }));
   }
 
   // Search patients by name or reference number
-  static async searchPatients(query: string): Promise<PatientProfile[]> {
+  static async searchPatients (query: string): Promise<PatientProfile[]> {
     const { Op } = require('sequelize');
-    
+
     const patients = await Patient.findAll({
       where: {
         [Op.or]: [
           { fullName: { [Op.iLike]: `%${query}%` } },
-          { referenceNumber: { [Op.iLike]: `%${query}%` } }
-        ]
+          { referenceNumber: { [Op.iLike]: `%${query}%` } },
+        ],
       },
       include: [
         {
           model: User,
           as: 'user',
-          attributes: ['phone', 'isActive']
-        }
+          attributes: ['phone', 'isActive'],
+        },
       ],
-      limit: 20
+      limit: 20,
     });
 
     return patients
@@ -415,7 +415,7 @@ export class PatientService {
         emergencyPhone: patient.emergencyPhone,
         phone: (patient as any).user.phone,
         createdAt: patient.createdAt,
-        updatedAt: patient.updatedAt
+        updatedAt: patient.updatedAt,
       }));
   }
 }

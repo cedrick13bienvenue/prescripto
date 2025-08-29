@@ -12,7 +12,7 @@ export interface DoctorAttributes {
   createdAt?: Date;
 }
 
-export interface DoctorCreationAttributes extends Omit<DoctorAttributes, 'id' | 'createdAt'> {}
+export type DoctorCreationAttributes = Omit<DoctorAttributes, 'id' | 'createdAt'>
 
 class Doctor extends Model<DoctorAttributes, DoctorCreationAttributes> implements DoctorAttributes {
   public id!: string;
@@ -62,7 +62,7 @@ Doctor.init(
     sequelize,
     tableName: 'doctors',
     modelName: 'Doctor',
-  }
+  },
 );
 
 // Associations

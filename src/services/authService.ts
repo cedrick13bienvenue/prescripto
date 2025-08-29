@@ -28,7 +28,7 @@ export interface AuthResponse {
 
 export class AuthService {
   // User registration
-  static async register(data: RegisterData): Promise<AuthResponse> {
+  static async register (data: RegisterData): Promise<AuthResponse> {
     // Check if user already exists
     const existingUser = await User.findOne({ where: { email: data.email } });
     if (existingUser) {
@@ -42,7 +42,7 @@ export class AuthService {
       fullName: data.fullName,
       role: data.role,
       phone: data.phone,
-      isActive: true
+      isActive: true,
     });
 
     // Generate JWT token
@@ -54,14 +54,14 @@ export class AuthService {
         email: user.email,
         fullName: user.fullName,
         role: user.role,
-        phone: user.phone
+        phone: user.phone,
       },
-      token
+      token,
     };
   }
 
   // User login
-  static async login(credentials: LoginCredentials): Promise<AuthResponse> {
+  static async login (credentials: LoginCredentials): Promise<AuthResponse> {
     // Find user by email
     const user = await User.findOne({ where: { email: credentials.email } });
     if (!user) {
@@ -88,14 +88,14 @@ export class AuthService {
         email: user.email,
         fullName: user.fullName,
         role: user.role,
-        phone: user.phone
+        phone: user.phone,
       },
-      token
+      token,
     };
   }
 
   // Generate JWT token
-  private static generateToken(user: User): string {
+  private static generateToken (user: User): string {
     const secret = process.env['JWT_SECRET'];
     if (!secret) {
       throw new Error('JWT_SECRET not configured');
@@ -105,16 +105,16 @@ export class AuthService {
       id: user.id,
       email: user.email,
       role: user.role,
-      fullName: user.fullName
+      fullName: user.fullName,
     };
 
     const expiresIn = process.env['JWT_EXPIRES_IN'] || '24h';
-    
+
     return jwt.sign(payload, secret, { expiresIn: expiresIn as any });
   }
 
   // Get user profile
-  static async getProfile(userId: string) {
+  static async getProfile (userId: string) {
     const user = await User.findByPk(userId);
     if (!user) {
       throw new Error('User not found');
@@ -127,19 +127,19 @@ export class AuthService {
       role: user.role,
       phone: user.phone,
       isActive: user.isActive,
-      createdAt: user.createdAt
+      createdAt: user.createdAt,
     };
   }
 
   // Update user profile
-  static async updateProfile(userId: string, updateData: Partial<{ fullName: string; phone: string }>) {
+  static async updateProfile (userId: string, updateData: Partial<{ fullName: string; phone: string }>) {
     const user = await User.findByPk(userId);
     if (!user) {
       throw new Error('User not found');
     }
 
     await user.update(updateData);
-    
+
     return {
       id: user.id,
       email: user.email,
@@ -147,12 +147,12 @@ export class AuthService {
       role: user.role,
       phone: user.phone,
       isActive: user.isActive,
-      updatedAt: user.updatedAt
+      updatedAt: user.updatedAt,
     };
   }
 
   // Change password
-  static async changePassword(userId: string, currentPassword: string, newPassword: string) {
+  static async changePassword (userId: string, currentPassword: string, newPassword: string) {
     const user = await User.findByPk(userId);
     if (!user) {
       throw new Error('User not found');
@@ -171,7 +171,7 @@ export class AuthService {
   }
 
   // Deactivate user (admin only)
-  static async deactivateUser(userId: string) {
+  static async deactivateUser (userId: string) {
     const user = await User.findByPk(userId);
     if (!user) {
       throw new Error('User not found');
@@ -182,7 +182,7 @@ export class AuthService {
   }
 
   // Reactivate user (admin only)
-  static async reactivateUser(userId: string) {
+  static async reactivateUser (userId: string) {
     const user = await User.findByPk(userId);
     if (!user) {
       throw new Error('User not found');

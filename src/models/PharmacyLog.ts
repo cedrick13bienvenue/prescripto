@@ -19,7 +19,7 @@ export interface PharmacyLogAttributes {
   createdAt?: Date;
 }
 
-export interface PharmacyLogCreationAttributes extends Omit<PharmacyLogAttributes, 'id' | 'actionTimestamp' | 'createdAt'> {}
+export type PharmacyLogCreationAttributes = Omit<PharmacyLogAttributes, 'id' | 'actionTimestamp' | 'createdAt'>
 
 class PharmacyLog extends Model<PharmacyLogAttributes, PharmacyLogCreationAttributes> implements PharmacyLogAttributes {
   public id!: string;
@@ -72,7 +72,7 @@ PharmacyLog.init(
     sequelize,
     tableName: 'pharmacy_logs',
     modelName: 'PharmacyLog',
-  }
+  },
 );
 
 // Associations

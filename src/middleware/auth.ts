@@ -22,8 +22,8 @@ export const authenticateToken = (req: AuthenticatedRequest, res: Response, next
       success: false,
       error: {
         message: 'Access token required',
-        statusCode: 401
-      }
+        statusCode: 401,
+      },
     });
     return;
   }
@@ -39,7 +39,7 @@ export const authenticateToken = (req: AuthenticatedRequest, res: Response, next
       id: decoded.id,
       email: decoded.email,
       role: decoded.role,
-      fullName: decoded.fullName
+      fullName: decoded.fullName,
     };
     next();
   } catch (error) {
@@ -47,41 +47,39 @@ export const authenticateToken = (req: AuthenticatedRequest, res: Response, next
       success: false,
       error: {
         message: 'Invalid or expired token',
-        statusCode: 403
-      }
+        statusCode: 403,
+      },
     });
   }
 };
 
 // Role-based access control middleware
-export const requireRole = (allowedRoles: UserRole | UserRole[]) => {
-  return (req: AuthenticatedRequest, res: Response, next: NextFunction): void => {
-    if (!req.user) {
-      res.status(401).json({
-        success: false,
-        error: {
-          message: 'Authentication required',
-          statusCode: 401
-        }
-      });
-      return;
-    }
+export const requireRole = (allowedRoles: UserRole | UserRole[]) => (req: AuthenticatedRequest, res: Response, next: NextFunction): void => {
+  if (!req.user) {
+    res.status(401).json({
+      success: false,
+      error: {
+        message: 'Authentication required',
+        statusCode: 401,
+      },
+    });
+    return;
+  }
 
-    const roles = Array.isArray(allowedRoles) ? allowedRoles : [allowedRoles];
-    
-    if (!roles.includes(req.user.role)) {
-      res.status(403).json({
-        success: false,
-        error: {
-          message: 'Insufficient permissions',
-          statusCode: 403
-        }
-      });
-      return;
-    }
+  const roles = Array.isArray(allowedRoles) ? allowedRoles : [allowedRoles];
 
-    next();
-  };
+  if (!roles.includes(req.user.role)) {
+    res.status(403).json({
+      success: false,
+      error: {
+        message: 'Insufficient permissions',
+        statusCode: 403,
+      },
+    });
+    return;
+  }
+
+  next();
 };
 
 // Specific role middlewares

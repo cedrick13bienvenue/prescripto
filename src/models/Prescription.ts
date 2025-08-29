@@ -24,7 +24,7 @@ export interface PrescriptionAttributes {
   updatedAt?: Date;
 }
 
-export interface PrescriptionCreationAttributes extends Omit<PrescriptionAttributes, 'id' | 'prescriptionNumber' | 'createdAt' | 'updatedAt'> {}
+export type PrescriptionCreationAttributes = Omit<PrescriptionAttributes, 'id' | 'prescriptionNumber' | 'createdAt' | 'updatedAt'>
 
 class Prescription extends Model<PrescriptionAttributes, PrescriptionCreationAttributes> implements PrescriptionAttributes {
   public id!: string;
@@ -40,7 +40,7 @@ class Prescription extends Model<PrescriptionAttributes, PrescriptionCreationAtt
   public readonly updatedAt!: Date;
 
   // Generate prescription number
-  public static generatePrescriptionNumber(): string {
+  public static generatePrescriptionNumber (): string {
     const date = new Date();
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -116,7 +116,7 @@ Prescription.init(
         }
       },
     },
-  }
+  },
 );
 
 // Associations

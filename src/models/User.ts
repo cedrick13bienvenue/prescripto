@@ -37,11 +37,11 @@ class User extends Model<UserAttributes, UserCreationAttributes> implements User
   public readonly updatedAt!: Date;
 
   // Instance methods
-  public async comparePassword(candidatePassword: string): Promise<boolean> {
+  public async comparePassword (candidatePassword: string): Promise<boolean> {
     return bcrypt.compare(candidatePassword, this.passwordHash);
   }
 
-  public async hashPassword(password: string): Promise<string> {
+  public async hashPassword (password: string): Promise<string> {
     const saltRounds = 12;
     return bcrypt.hash(password, saltRounds);
   }
@@ -103,7 +103,7 @@ User.init(
         }
       },
     },
-  }
+  },
 );
 
 export default User;
