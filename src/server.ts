@@ -25,11 +25,11 @@ app.get('/health', (_req, res) => {
   });
 });
 
-// Swagger routes (separate mount for docs)
-app.use(swaggerRouter);
-
-// API routes - Using the combined router
+// API routes - Using the combined router  
 app.use('/v1', routers);
+
+// Swagger routes (separate mount for docs at /api/v1/docs)
+app.use('/api/v1', swaggerRouter);
 
 // Basic API endpoint
 app.get('/api/v1', (_req, res) => {
