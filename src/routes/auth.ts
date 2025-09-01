@@ -5,6 +5,7 @@ import {
   requireAdmin,
   requireRole,
 } from '../middleware/auth';
+import { UserRole } from '../models';
 
 const router = Router();
 
@@ -12,10 +13,10 @@ const router = Router();
 router.post('/register', AuthController.register);
 router.post('/login', AuthController.login);
 
-// Protected routes (authentication required)
-router.get('/profile', authenticateToken, AuthController.getProfile);
-router.put('/profile', authenticateToken, AuthController.updateProfile);
-router.put('/change-password', authenticateToken, AuthController.changePassword);
+// Protected routes
+router.get('/profile', authenticateToken, requireRole([UserRole.DOCTOR, UserRole.ADMIN]), AuthController.getProfile);
+router.put('/profile', authenticateToken, requireRole([UserRole.DOCTOR, UserRole.ADMIN]), AuthController.updateProfile);
+router.put('/change-password', authenticateToken, requireRole([UserRole.DOCTOR, UserRole.ADMIN, UserRole.PATIENT, UserRole.PHARMACIST]), AuthController.changePassword);
 
 // Admin only routes
 router.put('/users/:userId/deactivate', authenticateToken, requireAdmin, AuthController.deactivateUser);
