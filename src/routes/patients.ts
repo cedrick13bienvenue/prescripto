@@ -4,20 +4,18 @@ import {
   authenticateToken,
   requireRole,
 } from '../middleware/auth';
-import { UserRole } from '../models';
+import { User, UserRole } from '../models';
 
 const router = Router();
 
-// Public routes (no authentication required)
-router.post('/register', PatientController.registerPatient);
-
 // Protected routes (authentication required)
-router.get('/search', authenticateToken, PatientController.searchPatients);
-router.get('/:patientId', authenticateToken, PatientController.getPatientById);
-router.put('/:patientId', authenticateToken, PatientController.updatePatient);
+router.post('/register', authenticateToken, requireRole([UserRole.ADMIN, UserRole.DOCTOR]), PatientController.registerPatient);
+router.get('/search', authenticateToken, requireRole([UserRole.ADMIN, UserRole.DOCTOR]), PatientController.searchPatients);
+router.get('/:patientId', authenticateToken, requireRole([UserRole.ADMIN, UserRole.DOCTOR]), PatientController.getPatientById);
+router.put('/:patientId', authenticateToken, requireRole([UserRole.ADMIN, UserRole.DOCTOR]),PatientController.updatePatient);
+router.get('/:patientId/history', authenticateToken, requireRole([UserRole.DOCTOR, UserRole.ADMIN, UserRole.PATIENT]), PatientController.getPatientMedicalHistory);
 
 // Doctor and Admin only routes
-router.get('/:patientId/history', authenticateToken, requireRole([UserRole.DOCTOR, UserRole.ADMIN]), PatientController.getPatientMedicalHistory);
 router.post('/:patientId/visits', authenticateToken, requireRole([UserRole.DOCTOR, UserRole.ADMIN]), PatientController.createMedicalVisit);
 router.post('/:patientId/prescriptions', authenticateToken, requireRole([UserRole.DOCTOR, UserRole.ADMIN]), PatientController.createPrescription);
 router.get('/:patientId/prescriptions', authenticateToken, requireRole([UserRole.DOCTOR, UserRole.ADMIN]), PatientController.getPatientPrescriptions);
@@ -26,3 +24,4 @@ router.get('/:patientId/prescriptions', authenticateToken, requireRole([UserRole
 router.get('/reference/:referenceNumber', authenticateToken, PatientController.getPatientByReference);
 
 export default router;
+
