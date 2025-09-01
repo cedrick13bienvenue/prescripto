@@ -2,11 +2,8 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { connectDatabase } from './database/config/database';
-import './models'; // Import all models to establish associations
-
-// Import routes
-import authRoutes from './routes/auth';
-import patientRoutes from './routes/patients';
+import './models'; 
+import { routers } from './routes';
 import { swaggerRouter } from './routes/swaggerRoutes';
 
 // Load environment variables
@@ -28,45 +25,21 @@ app.get('/health', (_req, res) => {
   });
 });
 
-// API routes
-app.use('/api/v1/auth', authRoutes);
-app.use('/api/v1/patients', patientRoutes);
-app.use('/api/v1', swaggerRouter);
+// Swagger routes (separate mount for docs)
+app.use(swaggerRouter);
+
+// API routes - Using the combined router
+app.use('/v1', routers);
 
 // Basic API endpoint
 app.get('/api/v1', (_req, res) => {
   res.json({
     message: 'MedConnect API v1',
-    status: 'Authentication system ready',
-    documentation: {
-      swagger: '/api/v1/docs',
-      swaggerJson: '/api/v1/docs.json',
-    },
+    status: 'Database models loaded and ready',
     endpoints: {
       health: '/health',
-      api: '/api/v1',
-      auth: '/api/v1/auth',
-      authEndpoints: {
-        register: 'POST /api/v1/auth/register',
-        login: 'POST /api/v1/auth/login',
-        profile: 'GET /api/v1/auth/profile',
-        updateProfile: 'PUT /api/v1/auth/profile',
-        changePassword: 'PUT /api/v1/auth/change-password',
-        deactivateUser: 'PUT /api/v1/auth/users/:userId/deactivate (Admin)',
-        reactivateUser: 'PUT /api/v1/auth/users/:userId/reactivate (Admin)',
-      },
-      patientEndpoints: {
-        register: 'POST /api/v1/patients/register',
-        search: 'GET /api/v1/patients/search?query=...',
-        getById: 'GET /api/v1/patients/:patientId',
-        update: 'PUT /api/v1/patients/:patientId',
-        getHistory: 'GET /api/v1/patients/:patientId/history (Doctor/Admin)',
-        createVisit: 'POST /api/v1/patients/:patientId/visits (Doctor/Admin)',
-        createPrescription: 'POST /api/v1/patients/:patientId/prescriptions (Doctor/Admin)',
-        getPrescriptions: 'GET /api/v1/patients/:patientId/prescriptions (Doctor/Admin)',
-        crossHospitalLookup: 'GET /api/v1/patients/reference/:referenceNumber',
-      },
-    },
+      api: '/api/v1'
+    }
   });
 });
 
@@ -75,7 +48,7 @@ const startServer = async () => {
   try {
     // Connect to database
     await connectDatabase();
-
+    
     // Start HTTP server
     app.listen(PORT, () => {
       console.log(`🚀 MedConnect server running on port ${PORT}`);
