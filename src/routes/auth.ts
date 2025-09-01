@@ -10,16 +10,16 @@ import { UserRole } from '../models';
 const router = Router();
 
 // Public routes (no authentication required)
-router.post('/register', AuthController.register);
-router.post('/login', AuthController.login);
+router.post('/auth/register', AuthController.register);
+router.post('/auth/login', AuthController.login);
 
 // Protected routes
-router.get('/profile', authenticateToken, requireRole([UserRole.DOCTOR, UserRole.ADMIN]), AuthController.getProfile);
-router.put('/profile', authenticateToken, requireRole([UserRole.DOCTOR, UserRole.ADMIN]), AuthController.updateProfile);
-router.put('/change-password', authenticateToken, requireRole([UserRole.DOCTOR, UserRole.ADMIN, UserRole.PATIENT, UserRole.PHARMACIST]), AuthController.changePassword);
+router.get('/auth/profile', authenticateToken, requireRole([UserRole.DOCTOR, UserRole.ADMIN]), AuthController.getProfile);
+router.put('/auth/profile', authenticateToken, requireRole([UserRole.DOCTOR, UserRole.ADMIN]), AuthController.updateProfile);
+router.put('/auth/change-password', authenticateToken, requireRole([UserRole.DOCTOR, UserRole.ADMIN, UserRole.PATIENT, UserRole.PHARMACIST]), AuthController.changePassword);
 
 // Admin only routes
-router.put('/users/:userId/deactivate', authenticateToken, requireAdmin, AuthController.deactivateUser);
-router.put('/users/:userId/reactivate', authenticateToken, requireAdmin, AuthController.reactivateUser);
+router.put('/auth/users/:userId/deactivate', authenticateToken, requireAdmin, AuthController.deactivateUser);
+router.put('/auth/users/:userId/reactivate', authenticateToken, requireAdmin, AuthController.reactivateUser);
 
 export default router;
