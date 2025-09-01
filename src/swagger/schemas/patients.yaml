@@ -178,8 +178,13 @@ components:
 
     MedicalVisitRequest:
       type: object
-      required: [visitDate, visitType, chiefComplaint]
+      required: [doctorId, visitDate, visitType, chiefComplaint]
       properties:
+        doctorId:
+          type: string
+          format: uuid
+          example: 123e4567-e89b-12d3-a456-426614174001
+          description: Doctor ID performing the visit
         visitDate:
           type: string
           format: date
@@ -214,28 +219,45 @@ components:
         id:
           type: string
           format: uuid
+          example: 123e4567-e89b-12d3-a456-426614174002
         visitDate:
           type: string
           format: date
+          example: "2024-01-01"
         visitType:
           $ref: "#/components/schemas/VisitType"
         chiefComplaint:
           type: string
+          example: Severe headache and fever
         symptoms:
           type: string
+          example: Headache, fever, nausea
         diagnosis:
           type: string
+          example: Migraine with fever
         treatmentNotes:
           type: string
+          example: Prescribed painkillers and rest
         recommendations:
           type: string
+          example: Follow up in 1 week if symptoms persist
+        doctor:
+          type: object
+          properties:
+            fullName:
+              type: string
+              example: Dr. John Smith
+            email:
+              type: string
+              example: doctor@hospital.com
         createdAt:
           type: string
           format: date-time
+          example: "2024-01-01T00:00:00.000Z"
 
     PrescriptionItem:
       type: object
-      required: [medicineName, dosage, frequency, quantity, instructions]
+      required: [medicineName, dosage, frequency, quantity]
       properties:
         medicineName:
           type: string
@@ -256,12 +278,17 @@ components:
         instructions:
           type: string
           example: Take with food
-          description: Special instructions
+          description: Special instructions (optional)
 
     PrescriptionRequest:
       type: object
-      required: [visitId, diagnosis, items]
+      required: [doctorId, visitId, diagnosis, items]
       properties:
+        doctorId:
+          type: string
+          format: uuid
+          example: 123e4567-e89b-12d3-a456-426614174001
+          description: Doctor ID prescribing the medication
         visitId:
           type: string
           format: uuid
@@ -288,25 +315,48 @@ components:
         id:
           type: string
           format: uuid
+          example: 123e4567-e89b-12d3-a456-426614174003
         prescriptionNumber:
           type: string
           example: RX-20240101-0001
+          description: Unique prescription number
         diagnosis:
           type: string
+          example: Migraine with fever
         doctorNotes:
           type: string
+          example: Patient should complete full course
         status:
           $ref: "#/components/schemas/PrescriptionStatus"
         qrCodeHash:
           type: string
           example: abc123def456
+          description: QR code hash for verification
         items:
           type: array
           items:
-            $ref: "#/components/schemas/PrescriptionItem"
+            allOf:
+              - $ref: "#/components/schemas/PrescriptionItem"
+              - type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                    example: 123e4567-e89b-12d3-a456-426614174004
+        doctor:
+          type: object
+          properties:
+            fullName:
+              type: string
+              example: Dr. John Smith
+            email:
+              type: string
+              example: doctor@hospital.com
         createdAt:
           type: string
           format: date-time
+          example: "2024-01-01T00:00:00.000Z"
         updatedAt:
           type: string
           format: date-time
+          example: "2024-01-01T00:00:00.000Z"
