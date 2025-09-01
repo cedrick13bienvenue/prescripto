@@ -4,7 +4,9 @@ paths:
       tags:
         - Patient Management
       summary: Register a new patient
-      description: Create a new patient account with automatic reference number generation
+      description: Create a new patient account with automatic reference number generation (Admin/Doctor only)
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -33,13 +35,25 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+        401:
+          description: Unauthorized - token required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        403:
+          description: Forbidden - Admin/Doctor role required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 
   /patients/search:
     get:
       tags:
         - Patient Management
       summary: Search patients
-      description: Search patients by name or reference number
+      description: Search patients by name or reference number (Admin/Doctor only)
       security:
         - bearerAuth: []
       parameters:
@@ -76,13 +90,19 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+        403:
+          description: Forbidden - Admin/Doctor role required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 
   /patients/{patientId}:
     get:
       tags:
         - Patient Management
       summary: Get patient by ID
-      description: Retrieve patient profile by patient ID
+      description: Retrieve patient profile by patient ID (Admin/Doctor only)
       security:
         - bearerAuth: []
       parameters:
@@ -118,6 +138,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+        403:
+          description: Forbidden - Admin/Doctor role required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
         404:
           description: Patient not found
           content:
@@ -128,7 +154,7 @@ paths:
       tags:
         - Patient Management
       summary: Update patient profile
-      description: Update patient profile information
+      description: Update patient profile information (Admin/Doctor only)
       security:
         - bearerAuth: []
       parameters:
@@ -169,6 +195,12 @@ paths:
                 $ref: "#/components/schemas/Error"
         401:
           description: Unauthorized - token required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        403:
+          description: Forbidden - Admin/Doctor role required
           content:
             application/json:
               schema:
@@ -394,7 +426,7 @@ paths:
       tags:
         - Patient Management
       summary: Get patient medical history
-      description: Retrieve patient medical history including visits and prescriptions (Doctor/Admin only)
+      description: Retrieve patient medical history including visits and prescriptions (Doctor/Admin/Patient only)
       security:
         - bearerAuth: []
       parameters:
@@ -440,7 +472,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
         403:
-          description: Forbidden - Doctor/Admin role required
+          description: Forbidden - Doctor/Admin/Patient role required
           content:
             application/json:
               schema:
