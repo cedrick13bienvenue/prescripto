@@ -5,7 +5,7 @@ npm-debug.log*
 # Production build
 dist/
 build/
-
+coverage
 # Environment variables
 .env
 .env.local
