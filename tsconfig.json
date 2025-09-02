@@ -12,9 +12,7 @@
     "types": ["jest", "node"]
   },
   "include": [
-    "src/**/*",
-     "tests/**/*",
-    "jest.config.ts"
+    "src/**/*"
   ],
   "exclude": [
     "node_modules",
