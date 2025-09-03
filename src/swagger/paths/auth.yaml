@@ -3,23 +3,37 @@ paths:
     post:
       tags:
         - Authentication
-      summary: Register a new user
-      description: Create a new user account with the specified role
+      summary: Register a new doctor (Admin only)
+      description: Create a new doctor account - requires admin authentication
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/UserRegistration"
+              $ref: "#/components/schemas/DoctorRegistration"
       responses:
         201:
-          description: User registered successfully
+          description: Doctor registered successfully
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/AuthResponse"
         400:
           description: Bad request - validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        401:
+          description: Unauthorized - admin token required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        403:
+          description: Forbidden - admin role required
           content:
             application/json:
               schema:
