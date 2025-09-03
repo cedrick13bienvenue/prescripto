@@ -5,6 +5,29 @@ components:
       enum: [patient, doctor, pharmacist, admin]
       description: User role in the system
 
+    DoctorRegistration:
+      type: object
+      required: [email, password, fullName]
+      properties:
+        email:
+          type: string
+          format: email
+          example: doctor@hospital.com
+          description: Doctor email address
+        password:
+          type: string
+          minLength: 6
+          example: password123
+          description: Doctor password (minimum 6 characters)
+        fullName:
+          type: string
+          example: Dr. John Smith
+          description: Doctor full name
+        phone:
+          type: string
+          example: "+250788123456"
+          description: Doctor phone number (optional)
+
     UserRegistration:
       type: object
       required: [email, password, fullName, role]
