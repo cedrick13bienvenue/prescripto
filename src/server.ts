@@ -26,7 +26,7 @@ app.get('/health', (_req, res) => {
 });
 
 // API routes - Using the combined router  
-app.use('/v1', routers);
+app.use('/api/v1', routers);
 
 // Swagger routes (separate mount for docs at /api/v1/docs)
 app.use('/api/v1', swaggerRouter);
