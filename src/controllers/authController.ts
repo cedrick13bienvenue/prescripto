@@ -1,64 +1,67 @@
 import { Request, Response } from 'express';
 import { AuthService, LoginCredentials, RegisterData } from '../services/authService';
 import { AuthenticatedRequest } from '../middleware/auth';
+import { UserRole } from '../models';
 
 export class AuthController {
-  // User registration
-  static async register (req: Request, res: Response) {
-    try {
-      const data: RegisterData = req.body;
 
-      // Basic validation
-      if (!data.email || !data.password || !data.fullName || !data.role) {
-        return res.status(400).json({
-          success: false,
-          error: {
-            message: 'Email, password, full name, and role are required',
-            statusCode: 400,
-          },
-        });
-      }
+static async register (req: AuthenticatedRequest, res: Response) {
+  try {
+    const data: RegisterData = req.body;
 
-      // Email format validation
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(data.email)) {
-        return res.status(400).json({
-          success: false,
-          error: {
-            message: 'Invalid email format',
-            statusCode: 400,
-          },
-        });
-      }
+    data.role = UserRole.DOCTOR;
 
-      // Password strength validation
-      if (data.password.length < 6) {
-        return res.status(400).json({
-          success: false,
-          error: {
-            message: 'Password must be at least 6 characters long',
-            statusCode: 400,
-          },
-        });
-      }
-
-      const result = await AuthService.register(data);
-
-      res.status(201).json({
-        success: true,
-        message: 'User registered successfully',
-        data: result,
-      });
-    } catch (error: any) {
-      res.status(400).json({
+    // Basic validation
+    if (!data.email || !data.password || !data.fullName) {
+      return res.status(400).json({
         success: false,
         error: {
-          message: error.message,
+          message: 'Email, password, and full name are required',
           statusCode: 400,
         },
       });
     }
+
+    // Email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(data.email)) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          message: 'Invalid email format',
+          statusCode: 400,
+        },
+      });
+    }
+
+    // Password strength validation
+    if (data.password.length < 6) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          message: 'Password must be at least 6 characters long',
+          statusCode: 400,
+        },
+      });
+    }
+
+    const result = await AuthService.register(data);
+
+    res.status(201).json({
+      success: true,
+      message: 'Doctor registered successfully',
+      data: result,
+    });
+  } catch (error: any) {
+    res.status(400).json({
+      success: false,
+      error: {
+        message: error.message,
+        statusCode: 400,
+      },
+    });
   }
+}
 
   // User login
   static async login (req: Request, res: Response) {

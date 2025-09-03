@@ -9,8 +9,10 @@ import { UserRole } from '../models';
 
 const router = Router();
 
-// Public routes (no authentication required)
-router.post('/auth/register', AuthController.register);
+// Admin only routes for doctor registration
+router.post('/auth/register', authenticateToken, requireAdmin, AuthController.register);
+
+// Public routes - login only
 router.post('/auth/login', AuthController.login);
 
 // Protected routes
