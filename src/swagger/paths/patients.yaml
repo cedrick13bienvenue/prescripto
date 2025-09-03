@@ -1,4 +1,5 @@
 paths:
+  # Patient Management Endpoints
   /patients:
     get:
       tags:
@@ -77,7 +78,9 @@ paths:
       tags:
         - Patients
       summary: Register a new patient
-      description: Create a new patient account with medical information
+      description: Create a new patient account with medical information - requires admin or doctor authentication
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -106,13 +109,25 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+        401:
+          description: Unauthorized - token required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        403:
+          description: Forbidden - admin/doctor role required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 
   /patients/search:
     get:
       tags:
         - Patients
       summary: Search patients
-      description: Search patients by name or reference number (Doctor/Admin only)
+      description: Search patients by name or reference number - requires admin or doctor authentication
       security:
         - bearerAuth: []
       parameters:
@@ -150,7 +165,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
         403:
-          description: Forbidden - doctor/admin role required
+          description: Forbidden - admin/doctor role required
           content:
             application/json:
               schema:
@@ -161,7 +176,7 @@ paths:
       tags:
         - Patients
       summary: Get patient by reference number
-      description: Retrieve patient information using reference number (Doctor/Pharmacist/Admin only)
+      description: Retrieve patient information using reference number - cross-hospital lookup
       security:
         - bearerAuth: []
       parameters:
@@ -170,7 +185,7 @@ paths:
           required: true
           schema:
             type: string
-          description: Patient reference number
+          description: Patient reference number (e.g., PAT-20240101-0001)
       responses:
         200:
           description: Patient found
@@ -196,8 +211,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-        403:
-          description: Forbidden - insufficient permissions
+        500:
+          description: Internal server error
           content:
             application/json:
               schema:
@@ -208,7 +223,7 @@ paths:
       tags:
         - Patients
       summary: Get patient by ID
-      description: Retrieve patient information by ID (Doctor/Admin only)
+      description: Retrieve patient information by ID - requires admin or doctor authentication
       security:
         - bearerAuth: []
       parameters:
@@ -245,7 +260,13 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
         403:
-          description: Forbidden - doctor/admin role required
+          description: Forbidden - admin/doctor role required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        500:
+          description: Internal server error
           content:
             application/json:
               schema:
@@ -254,7 +275,7 @@ paths:
       tags:
         - Patients
       summary: Update patient
-      description: Update patient information (Doctor/Admin only)
+      description: Update patient information - requires admin or doctor authentication
       security:
         - bearerAuth: []
       parameters:
@@ -306,7 +327,226 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
         403:
+          description: Forbidden - admin/doctor role required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /patients/{patientId}/history:
+    get:
+      tags:
+        - Patients
+      summary: Get patient medical history
+      description: Retrieve complete medical history including visits and prescriptions
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: patientId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Patient ID
+      responses:
+        200:
+          description: Medical history retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      visits:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/MedicalVisitResponse"
+                      prescriptions:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/PrescriptionResponse"
+        401:
+          description: Unauthorized - token required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        403:
+          description: Forbidden - insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        500:
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /patients/{patientId}/visits:
+    post:
+      tags:
+        - Patients
+      summary: Create medical visit
+      description: Create a new medical visit record for a patient
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: patientId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Patient ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MedicalVisitRequest"
+      responses:
+        201:
+          description: Medical visit created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Medical visit created successfully
+                  data:
+                    $ref: "#/components/schemas/MedicalVisitResponse"
+        400:
+          description: Bad request - validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        401:
+          description: Unauthorized - token required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        403:
           description: Forbidden - doctor/admin role required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /patients/{patientId}/prescriptions:
+    post:
+      tags:
+        - Patients
+      summary: Create prescription
+      description: Create a new prescription for a patient
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: patientId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Patient ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PrescriptionRequest"
+      responses:
+        201:
+          description: Prescription created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Prescription created successfully
+                  data:
+                    $ref: "#/components/schemas/PrescriptionResponse"
+        400:
+          description: Bad request - validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        401:
+          description: Unauthorized - token required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        403:
+          description: Forbidden - doctor/admin role required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    get:
+      tags:
+        - Patients
+      summary: Get patient prescriptions
+      description: Retrieve all prescriptions for a patient
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: patientId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Patient ID
+      responses:
+        200:
+          description: Prescriptions retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/PrescriptionResponse"
+        401:
+          description: Unauthorized - token required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        403:
+          description: Forbidden - doctor/admin role required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        500:
+          description: Internal server error
           content:
             application/json:
               schema:
