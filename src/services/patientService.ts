@@ -64,6 +64,49 @@ export interface PrescriptionItemData {
 }
 
 export class PatientService {
+
+  // Get all patients with pagination (doctor-only)
+static async getAllPatients (limit: number = 10, offset: number = 0): Promise<{ patients: PatientProfile[], total: number }> {
+  const { count, rows: patients } = await Patient.findAndCountAll({
+    include: [
+      {
+        model: User,
+        as: 'user',
+        attributes: ['phone', 'isActive'],
+        where: { isActive: true },
+      },
+    ],
+    limit,
+    offset,
+    order: [['createdAt', 'DESC']],
+  });
+
+  const patientProfiles = patients.map(patient => {
+    const userData = (patient as any).user;
+    return {
+      id: patient.id,
+      referenceNumber: patient.referenceNumber,
+      fullName: patient.fullName,
+      dateOfBirth: patient.dateOfBirth,
+      gender: patient.gender,
+      insuranceProvider: patient.insuranceProvider,
+      insuranceNumber: patient.insuranceNumber,
+      allergies: patient.allergies,
+      existingConditions: patient.existingConditions,
+      emergencyContact: patient.emergencyContact,
+      emergencyPhone: patient.emergencyPhone,
+      phone: userData?.phone,
+      createdAt: patient.createdAt,
+      updatedAt: patient.updatedAt,
+    } as PatientProfile;
+  });
+
+  return {
+    patients: patientProfiles,
+    total: count,
+  };
+}
+
   // Patient registration with reference number generation
   static async registerPatient (data: PatientRegistrationData): Promise<PatientProfile> {
     // Create user account first

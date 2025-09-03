@@ -4,6 +4,38 @@ import { authenticateToken, requireRole } from '../middleware/auth';
 import { UserRole } from '../models';
 
 export class PatientController {
+
+  // Get all patients (doctor-only)
+static async getAllPatients (req: Request, res: Response) {
+  try {
+    const { page = 1, limit = 10 } = req.query;
+    const pageNum = parseInt(page as string);
+    const limitNum = parseInt(limit as string);
+    const offset = (pageNum - 1) * limitNum;
+
+    const patients = await PatientService.getAllPatients(limitNum, offset);
+
+    res.status(200).json({
+      success: true,
+      data: patients.patients,
+      pagination: {
+        page: pageNum,
+        limit: limitNum,
+        total: patients.total,
+        totalPages: Math.ceil(patients.total / limitNum),
+      },
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      error: {
+        message: error.message,
+        statusCode: 500,
+      },
+    });
+  }
+}
+
   // Patient registration
   static async registerPatient (req: Request, res: Response) {
     try {

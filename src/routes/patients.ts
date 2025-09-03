@@ -3,6 +3,7 @@ import { PatientController } from '../controllers/patientController';
 import {
   authenticateToken,
   requireRole,
+  requireDoctor
 } from '../middleware/auth';
 import { User, UserRole } from '../models';
 
@@ -19,6 +20,7 @@ router.get('/patients/:patientId/history', authenticateToken, requireRole([UserR
 router.post('/patients/:patientId/visits', authenticateToken, requireRole([UserRole.DOCTOR, UserRole.ADMIN]), PatientController.createMedicalVisit);
 router.post('/patients/:patientId/prescriptions', authenticateToken, requireRole([UserRole.DOCTOR, UserRole.ADMIN]), PatientController.createPrescription);
 router.get('/patients/:patientId/prescriptions', authenticateToken, requireRole([UserRole.DOCTOR, UserRole.ADMIN]), PatientController.getPatientPrescriptions);
+router.get('/patients', authenticateToken, requireDoctor, PatientController.getAllPatients);
 
 // Cross-hospital lookup (any authenticated user)
 router.get('/patients/reference/:referenceNumber', authenticateToken, PatientController.getPatientByReference);
