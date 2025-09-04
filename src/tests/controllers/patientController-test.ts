@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { PatientController } from '../../controllers/patientController';
-import { PatientService, PatientRegistrationData, MedicalVisitData, PrescriptionData } from '../../services/patientService';
+import { PatientService } from '../../services/patientService';
+import { PatientRegistrationData, MedicalVisitData, PrescriptionData } from '../../types';
 import { VisitType } from '../../models/MedicalVisit';
 
 // Mock the PatientService
@@ -34,6 +35,8 @@ describe('PatientController', () => {
         dateOfBirth: '1990-01-01',
         gender: 'male',
         phone: '+1234567890',
+        emergencyContact: 'Jane Doe',
+        emergencyPhone: '+1234567891',
       };
 
       const mockPatient = {
