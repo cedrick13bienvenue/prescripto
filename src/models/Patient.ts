@@ -4,8 +4,9 @@ import User from './User';
 
 export interface PatientAttributes {
   id: string;
-  referenceNumber: string;
+  referenceNumber?: string; // Made optional to allow auto-generation
   userId: string;
+  email: string; // Email from associated user
   fullName: string;
   dateOfBirth: Date;
   gender: 'male' | 'female' | 'other';
@@ -19,12 +20,13 @@ export interface PatientAttributes {
   updatedAt?: Date;
 }
 
-export type PatientCreationAttributes = Omit<PatientAttributes, 'id' | 'referenceNumber' | 'createdAt' | 'updatedAt'>
+export type PatientCreationAttributes = Omit<PatientAttributes, 'id' | 'email' | 'createdAt' | 'updatedAt'>
 
 class Patient extends Model<PatientAttributes, PatientCreationAttributes> implements PatientAttributes {
   public id!: string;
-  public referenceNumber!: string;
+  public referenceNumber?: string;
   public userId!: string;
+  public email!: string; // Email from associated user
   public fullName!: string;
   public dateOfBirth!: Date;
   public gender!: 'male' | 'female' | 'other';
@@ -63,18 +65,27 @@ Patient.init(
     userId: {
       type: DataTypes.UUID,
       allowNull: false,
+      field: 'user_id',
       references: {
         model: 'users',
         key: 'id',
       },
     },
+    email: {
+      type: DataTypes.VIRTUAL,
+      get() {
+        return (this as any).user?.email;
+      },
+    },
     fullName: {
       type: DataTypes.STRING,
       allowNull: false,
+      field: 'full_name',
     },
     dateOfBirth: {
       type: DataTypes.DATEONLY,
       allowNull: false,
+      field: 'date_of_birth',
     },
     gender: {
       type: DataTypes.ENUM('male', 'female', 'other'),
@@ -83,11 +94,13 @@ Patient.init(
     insuranceProvider: {
       type: DataTypes.STRING,
       allowNull: true,
+      field: 'insurance_provider',
     },
     insuranceNumber: {
       type: DataTypes.STRING,
       allowNull: true,
       unique: true,
+      field: 'insurance_number',
     },
     allergies: {
       type: DataTypes.JSON,
@@ -98,14 +111,17 @@ Patient.init(
       type: DataTypes.JSON,
       allowNull: false,
       defaultValue: [],
+      field: 'existing_conditions',
     },
     emergencyContact: {
       type: DataTypes.STRING,
       allowNull: false,
+      field: 'emergency_contact',
     },
     emergencyPhone: {
       type: DataTypes.STRING,
       allowNull: false,
+      field: 'emergency_phone',
     },
   },
   {
@@ -114,6 +130,7 @@ Patient.init(
     modelName: 'Patient',
     hooks: {
       beforeCreate: (patient: Patient) => {
+        // Always generate reference number if not provided
         if (!patient.referenceNumber) {
           patient.referenceNumber = Patient.generateReferenceNumber();
         }
