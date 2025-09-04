@@ -338,7 +338,7 @@ paths:
       tags:
         - Patients
       summary: Get patient medical history
-      description: Retrieve complete medical history including visits and prescriptions
+      description: Retrieve complete medical history including visits and prescriptions. Patients can only access their own medical history, while doctors and admins can access any patient's history.
       security:
         - bearerAuth: []
       parameters:
@@ -378,7 +378,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
         403:
-          description: Forbidden - insufficient permissions
+          description: Forbidden - patients can only access their own medical history
           content:
             application/json:
               schema:

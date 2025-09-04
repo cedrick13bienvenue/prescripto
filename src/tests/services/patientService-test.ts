@@ -1,4 +1,5 @@
-import { PatientService, PatientRegistrationData, MedicalVisitData, PrescriptionData } from '../../services/patientService';
+import { PatientService } from '../../services/patientService';
+import { PatientRegistrationData, MedicalVisitData, PrescriptionData } from '../../types';
 import { Patient, User, MedicalVisit, Prescription, PrescriptionItem, UserRole } from '../../models';
 import { VisitType } from '../../models/MedicalVisit';
 import { PrescriptionStatus } from '../../models/Prescription';
