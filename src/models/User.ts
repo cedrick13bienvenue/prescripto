@@ -17,12 +17,18 @@ export interface UserAttributes {
   fullName: string;
   phone?: string;
   isActive: boolean;
+  password?: string; // Virtual field for password during creation
   createdAt?: Date;
   updatedAt?: Date;
 }
 
 export interface UserCreationAttributes extends Omit<UserAttributes, 'id' | 'passwordHash' | 'createdAt' | 'updatedAt'> {
-  password: string;
+  password?: string;
+  passwordHash?: string;
+}
+
+export interface UserInstance extends User {
+  password?: string;
 }
 
 class User extends Model<UserAttributes, UserCreationAttributes> implements UserAttributes {
@@ -35,6 +41,9 @@ class User extends Model<UserAttributes, UserCreationAttributes> implements User
   public isActive!: boolean;
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
+  
+  // Virtual field for password during creation
+  public password?: string;
 
   // Instance methods
   public async comparePassword (candidatePassword: string): Promise<boolean> {
@@ -83,6 +92,10 @@ User.init(
       type: DataTypes.BOOLEAN,
       allowNull: false,
       defaultValue: true,
+    },
+    password: {
+      type: DataTypes.VIRTUAL,
+      allowNull: true,
     },
   },
   {

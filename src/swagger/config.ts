@@ -27,6 +27,20 @@ const options: any = {
         description: 'Production server',
       },
     ],
+    tags: [
+      {
+        name: 'Authentication',
+        description: 'User authentication and authorization',
+      },
+      {
+        name: 'Patients',
+        description: 'Patient management and medical records',
+      },
+      {
+        name: 'Doctors',
+        description: 'Doctor management and professional profiles',
+      },
+    ],
     components: {
       securitySchemes: {
         bearerAuth: {
@@ -42,8 +56,10 @@ const options: any = {
   apis: [
     path.join(__dirname, 'paths/auth.yaml'),
     path.join(__dirname, 'paths/patients.yaml'),
+    path.join(__dirname, 'paths/doctors.yaml'),
     path.join(__dirname, 'schemas/auth.yaml'),
     path.join(__dirname, 'schemas/patients.yaml'),
+    path.join(__dirname, 'schemas/doctors.yaml'),
     path.join(__dirname, 'schemas/common.yaml'),
   ],
 };

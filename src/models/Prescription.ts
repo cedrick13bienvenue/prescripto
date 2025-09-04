@@ -12,7 +12,7 @@ export enum PrescriptionStatus {
 
 export interface PrescriptionAttributes {
   id: string;
-  prescriptionNumber: string;
+  prescriptionNumber?: string; // Made optional to allow auto-generation
   patientId: string;
   doctorId: string;
   visitId: string;
@@ -24,11 +24,11 @@ export interface PrescriptionAttributes {
   updatedAt?: Date;
 }
 
-export type PrescriptionCreationAttributes = Omit<PrescriptionAttributes, 'id' | 'prescriptionNumber' | 'createdAt' | 'updatedAt'>
+export type PrescriptionCreationAttributes = Omit<PrescriptionAttributes, 'id' | 'createdAt' | 'updatedAt'>
 
 class Prescription extends Model<PrescriptionAttributes, PrescriptionCreationAttributes> implements PrescriptionAttributes {
   public id!: string;
-  public prescriptionNumber!: string;
+  public prescriptionNumber?: string;
   public patientId!: string;
   public doctorId!: string;
   public visitId!: string;
