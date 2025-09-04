@@ -1,67 +1,11 @@
 import { Request, Response } from 'express';
-import { AuthService, LoginCredentials, RegisterData } from '../services/authService';
+import { AuthService } from '../services/authService';
 import { AuthenticatedRequest } from '../middleware/auth';
 import { UserRole } from '../models';
+import { LoginCredentials, ChangePasswordData } from '../types';
 
 export class AuthController {
 
-static async register (req: AuthenticatedRequest, res: Response) {
-  try {
-    const data: RegisterData = req.body;
-
-    data.role = UserRole.DOCTOR;
-
-    // Basic validation
-    if (!data.email || !data.password || !data.fullName) {
-      return res.status(400).json({
-        success: false,
-        error: {
-          message: 'Email, password, and full name are required',
-          statusCode: 400,
-        },
-      });
-    }
-
-    // Email format validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(data.email)) {
-      return res.status(400).json({
-        success: false,
-        error: {
-          message: 'Invalid email format',
-          statusCode: 400,
-        },
-      });
-    }
-
-    // Password strength validation
-    if (data.password.length < 6) {
-      return res.status(400).json({
-        success: false,
-        error: {
-          message: 'Password must be at least 6 characters long',
-          statusCode: 400,
-        },
-      });
-    }
-
-    const result = await AuthService.register(data);
-
-    res.status(201).json({
-      success: true,
-      message: 'Doctor registered successfully',
-      data: result,
-    });
-  } catch (error: any) {
-    res.status(400).json({
-      success: false,
-      error: {
-        message: error.message,
-        statusCode: 400,
-      },
-    });
-  }
-}
 
   // User login
   static async login (req: Request, res: Response) {
@@ -127,57 +71,6 @@ static async register (req: AuthenticatedRequest, res: Response) {
     }
   }
 
-  // Update user profile
-  static async updateProfile (req: AuthenticatedRequest, res: Response) {
-    try {
-      if (!req.user) {
-        return res.status(401).json({
-          success: false,
-          error: {
-            message: 'Authentication required',
-            statusCode: 401,
-          },
-        });
-      }
-
-      const updateData = req.body;
-      const allowedFields = ['fullName', 'phone'];
-      const filteredData: any = {};
-
-      // Only allow specific fields to be updated
-      allowedFields.forEach(field => {
-        if (updateData[field] !== undefined) {
-          filteredData[field] = updateData[field];
-        }
-      });
-
-      if (Object.keys(filteredData).length === 0) {
-        return res.status(400).json({
-          success: false,
-          error: {
-            message: 'No valid fields to update',
-            statusCode: 400,
-          },
-        });
-      }
-
-      const updatedProfile = await AuthService.updateProfile(req.user.id, filteredData);
-
-      res.status(200).json({
-        success: true,
-        message: 'Profile updated successfully',
-        data: updatedProfile,
-      });
-    } catch (error: any) {
-      res.status(400).json({
-        success: false,
-        error: {
-          message: error.message,
-          statusCode: 400,
-        },
-      });
-    }
-  }
 
   // Change password
   static async changePassword (req: AuthenticatedRequest, res: Response) {

@@ -1,63 +1,72 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { User, UserRole } from '../models';
-
-export interface LoginCredentials {
-  email: string;
-  password: string;
-}
-
-export interface RegisterData {
-  email: string;
-  password: string;
-  fullName: string;
-  role: UserRole;
-  phone?: string;
-}
-
-export interface AuthResponse {
-  user: {
-    id: string;
-    email: string;
-    fullName: string;
-    role: UserRole;
-    phone?: string;
-  };
-  token: string;
-}
+import Doctor from '../models/Doctor';
+import { LoginCredentials, RegisterData, AuthResponse, UserProfile, ChangePasswordData, JwtPayload } from '../types';
 
 export class AuthService {
   // User registration
   static async register (data: RegisterData): Promise<AuthResponse> {
-    // Check if user already exists
-    const existingUser = await User.findOne({ where: { email: data.email } });
-    if (existingUser) {
-      throw new Error('User with this email already exists');
+    try {
+      // Check if user already exists
+      const existingUser = await User.findOne({ where: { email: data.email } });
+      if (existingUser) {
+        throw new Error('User with this email already exists');
+      }
+
+      // Hash password before creating user
+      const tempUser = new User();
+      const hashedPassword = await tempUser.hashPassword(data.password);
+
+      // Create new user with hashed password
+      const user = await User.create({
+        email: data.email,
+        passwordHash: hashedPassword,
+        fullName: data.fullName,
+        role: data.role,
+        phone: data.phone,
+        isActive: true,
+      });
+
+      // If registering as a doctor, create doctor profile
+      if (data.role === UserRole.DOCTOR) {
+        await Doctor.create({
+          userId: user.id,
+          isVerified: false, // Not verified initially
+        });
+      }
+
+      // Generate JWT token
+      const token = this.generateToken(user);
+
+      return {
+        user: {
+          id: user.id,
+          email: user.email,
+          fullName: user.fullName,
+          role: user.role,
+          phone: user.phone,
+        },
+        token,
+      };
+    } catch (error: any) {
+      console.error('Error in register:', error);
+      
+      // Handle specific Sequelize errors
+      if (error.name === 'SequelizeUniqueConstraintError') {
+        if (error.errors && error.errors[0] && error.errors[0].path === 'email') {
+          throw new Error('Email already exists. Please use a different email address.');
+        }
+        throw new Error('A record with this information already exists.');
+      }
+      
+      if (error.name === 'SequelizeValidationError') {
+        const validationErrors = error.errors.map((err: any) => err.message).join(', ');
+        throw new Error(`Validation failed: ${validationErrors}`);
+      }
+      
+      throw error; // Re-throw the original error if it's not a Sequelize error
     }
-
-    // Create new user
-    const user = await User.create({
-      email: data.email,
-      password: data.password, // Will be hashed by model hooks
-      fullName: data.fullName,
-      role: data.role,
-      phone: data.phone,
-      isActive: true,
-    });
-
-    // Generate JWT token
-    const token = this.generateToken(user);
-
-    return {
-      user: {
-        id: user.id,
-        email: user.email,
-        fullName: user.fullName,
-        role: user.role,
-        phone: user.phone,
-      },
-      token,
-    };
   }
 
   // User login
@@ -131,25 +140,6 @@ export class AuthService {
     };
   }
 
-  // Update user profile
-  static async updateProfile (userId: string, updateData: Partial<{ fullName: string; phone: string }>) {
-    const user = await User.findByPk(userId);
-    if (!user) {
-      throw new Error('User not found');
-    }
-
-    await user.update(updateData);
-
-    return {
-      id: user.id,
-      email: user.email,
-      fullName: user.fullName,
-      role: user.role,
-      phone: user.phone,
-      isActive: user.isActive,
-      updatedAt: user.updatedAt,
-    };
-  }
 
   // Change password
   static async changePassword (userId: string, currentPassword: string, newPassword: string) {
@@ -164,8 +154,9 @@ export class AuthService {
       throw new Error('Current password is incorrect');
     }
 
-    // Update password (will be hashed by model hooks)
-    await user.update({ password: newPassword } as any);
+    // Hash new password and update
+    const hashedPassword = await user.hashPassword(newPassword);
+    await user.update({ passwordHash: hashedPassword });
 
     return { message: 'Password updated successfully' };
   }
