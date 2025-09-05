@@ -21,6 +21,7 @@ export interface AuthResponse {
     fullName: string;
     role: UserRole;
     phone?: string;
+    patientId?: string; // Only present for patient users
   };
   token: string;
 }
