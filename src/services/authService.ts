@@ -2,6 +2,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { User, UserRole } from '../models';
 import Doctor from '../models/Doctor';
+import Patient from '../models/Patient';
 import { LoginCredentials, RegisterData, AuthResponse, UserProfile, ChangePasswordData, JwtPayload } from '../types';
 
 export class AuthService {
@@ -91,6 +92,15 @@ export class AuthService {
     // Generate JWT token
     const token = this.generateToken(user);
 
+    // Fetch patient ID if user is a patient
+    let patientId: string | undefined;
+    if (user.role === UserRole.PATIENT) {
+      const patient = await Patient.findOne({ where: { userId: user.id } });
+      if (patient) {
+        patientId = patient.id;
+      }
+    }
+
     return {
       user: {
         id: user.id,
@@ -98,6 +108,7 @@ export class AuthService {
         fullName: user.fullName,
         role: user.role,
         phone: user.phone,
+        ...(patientId && { patientId }), // Conditionally add patientId
       },
       token,
     };
