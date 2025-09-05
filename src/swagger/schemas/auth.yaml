@@ -63,6 +63,11 @@ components:
         phone:
           type: string
           example: "+1234567890"
+        patientId:
+          type: string
+          format: uuid
+          example: ca5152c7-5300-4ea9-b519-82ca32a16f88
+          description: Patient ID (only present for patient users)
         isActive:
           type: boolean
           example: true
