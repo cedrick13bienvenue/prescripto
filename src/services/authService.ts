@@ -92,6 +92,16 @@ export class AuthService {
     // Generate JWT token
     const token = this.generateToken(user);
 
+        // Fetch patient ID if user is a patient
+    let patientId: string | undefined;
+    if (user.role === UserRole.PATIENT) {
+      const patient = await Patient.findOne({ where: { userId: user.id } });
+      if (patient) {
+        patientId = patient.id;
+      }
+    }
+
+
     return {
       user: {
         id: user.id,
@@ -99,6 +109,7 @@ export class AuthService {
         fullName: user.fullName,
         role: user.role,
         phone: user.phone,
+        ...(patientId && { patientId }),
       },
       token,
     };
