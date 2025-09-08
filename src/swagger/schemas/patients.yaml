@@ -309,6 +309,79 @@ components:
           minItems: 1
           description: List of prescription items
 
+    Prescription:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: 123e4567-e89b-12d3-a456-426614174003
+        prescriptionNumber:
+          type: string
+          example: RX-20240101-0001
+          description: Unique prescription number
+        patientId:
+          type: string
+          format: uuid
+          example: 123e4567-e89b-12d3-a456-426614174000
+        doctorId:
+          type: string
+          format: uuid
+          example: 123e4567-e89b-12d3-a456-426614174001
+        visitId:
+          type: string
+          format: uuid
+          example: 123e4567-e89b-12d3-a456-426614174002
+        diagnosis:
+          type: string
+          example: Migraine with fever
+        doctorNotes:
+          type: string
+          example: Patient should complete full course
+        status:
+          $ref: "#/components/schemas/PrescriptionStatus"
+        qrCodeHash:
+          type: string
+          example: abc123def456
+          description: QR code hash for verification
+        items:
+          type: array
+          items:
+            allOf:
+              - $ref: "#/components/schemas/PrescriptionItem"
+              - type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                    example: 123e4567-e89b-12d3-a456-426614174004
+        patient:
+          type: object
+          properties:
+            fullName:
+              type: string
+              example: Jane Smith
+            email:
+              type: string
+              example: patient@example.com
+        doctor:
+          type: object
+          properties:
+            fullName:
+              type: string
+              example: Dr. John Smith
+            email:
+              type: string
+              example: doctor@hospital.com
+        createdAt:
+          type: string
+          format: date-time
+          example: "2024-01-01T00:00:00.000Z"
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2024-01-01T00:00:00.000Z"
+
     PrescriptionResponse:
       type: object
       properties:
