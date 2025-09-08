@@ -6,23 +6,34 @@ import {
   requireDoctor
 } from '../middleware/auth';
 import { User, UserRole } from '../models';
+import { validateBody, validateQuery, validateParams } from '../middleware/validation';
+import { 
+  patientRegistrationSchema, 
+  patientUpdateSchema, 
+  medicalVisitSchema, 
+  prescriptionSchema, 
+  searchQuerySchema, 
+  paginationSchema,
+  patientIdParamSchema,
+  referenceNumberParamSchema
+} from '../validation/schemas';
 
 const router = Router();
 
 // Protected routes (authentication required)
-router.post('/patients/register', authenticateToken, requireRole([UserRole.ADMIN, UserRole.DOCTOR]), PatientController.registerPatient);
-router.get('/patients/search', authenticateToken, requireRole([UserRole.ADMIN, UserRole.DOCTOR]), PatientController.searchPatients);
-router.get('/patients/:patientId', authenticateToken, requireRole([UserRole.ADMIN, UserRole.DOCTOR]), PatientController.getPatientById);
-router.put('/patients/:patientId', authenticateToken, requireRole([UserRole.ADMIN, UserRole.DOCTOR]), PatientController.updatePatient);
-router.get('/patients/:patientId/history', authenticateToken, requireRole([UserRole.DOCTOR, UserRole.ADMIN, UserRole.PATIENT]), PatientController.getPatientMedicalHistory);
+router.post('/patients/register', authenticateToken, requireRole([UserRole.ADMIN, UserRole.DOCTOR]), validateBody(patientRegistrationSchema), PatientController.registerPatient);
+router.get('/patients/search', authenticateToken, requireRole([UserRole.ADMIN, UserRole.DOCTOR]), validateQuery(searchQuerySchema), PatientController.searchPatients);
+router.get('/patients/:patientId', authenticateToken, requireRole([UserRole.ADMIN, UserRole.DOCTOR]), validateParams(patientIdParamSchema), PatientController.getPatientById);
+router.put('/patients/:patientId', authenticateToken, requireRole([UserRole.ADMIN, UserRole.DOCTOR]), validateParams(patientIdParamSchema), validateBody(patientUpdateSchema), PatientController.updatePatient);
+router.get('/patients/:patientId/history', authenticateToken, requireRole([UserRole.DOCTOR, UserRole.ADMIN, UserRole.PATIENT]), validateParams(patientIdParamSchema), PatientController.getPatientMedicalHistory);
 
 // Doctor and Admin only routes
-router.post('/patients/:patientId/visits', authenticateToken, requireRole([UserRole.DOCTOR, UserRole.ADMIN]), PatientController.createMedicalVisit);
-router.post('/patients/:patientId/prescriptions', authenticateToken, requireRole([UserRole.DOCTOR, UserRole.ADMIN]), PatientController.createPrescription);
-router.get('/patients/:patientId/prescriptions', authenticateToken, requireRole([UserRole.DOCTOR, UserRole.ADMIN]), PatientController.getPatientPrescriptions);
-router.get('/patients', authenticateToken, requireDoctor, PatientController.getAllPatients);
+router.post('/patients/:patientId/visits', authenticateToken, requireRole([UserRole.DOCTOR, UserRole.ADMIN]), validateParams(patientIdParamSchema), validateBody(medicalVisitSchema), PatientController.createMedicalVisit);
+router.post('/patients/:patientId/prescriptions', authenticateToken, requireRole([UserRole.DOCTOR, UserRole.ADMIN]), validateParams(patientIdParamSchema), validateBody(prescriptionSchema), PatientController.createPrescription);
+router.get('/patients/:patientId/prescriptions', authenticateToken, requireRole([UserRole.DOCTOR, UserRole.ADMIN]), validateParams(patientIdParamSchema), PatientController.getPatientPrescriptions);
+router.get('/patients', authenticateToken, requireDoctor, validateQuery(paginationSchema), PatientController.getAllPatients);
 
 // Cross-hospital lookup (any authenticated user)
-router.get('/patients/reference/:referenceNumber', authenticateToken, PatientController.getPatientByReference);
+router.get('/patients/reference/:referenceNumber', authenticateToken, validateParams(referenceNumberParamSchema), PatientController.getPatientByReference);
 
 export default router;
