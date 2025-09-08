@@ -5,6 +5,8 @@ import { EmailService } from '../services/emailService';
 import { authenticateToken, requireRole } from '../middleware/auth';
 import { UserRole } from '../models';
 import { Prescription } from '../models';
+import { validateParams } from '../middleware/validation';
+import { prescriptionIdParamSchema, qrHashParamSchema } from '../validation/schemas';
 
 const router = Router();
 
@@ -12,7 +14,7 @@ const router = Router();
  * Generate QR code for a prescription
  * POST /api/v1/qr-codes/generate/:prescriptionId
  */
-router.post('/qr-codes/generate/:prescriptionId', authenticateToken, requireRole([UserRole.DOCTOR, UserRole.ADMIN]), async (req: Request, res: Response) => {
+router.post('/qr-codes/generate/:prescriptionId', authenticateToken, requireRole([UserRole.DOCTOR, UserRole.ADMIN]), validateParams(prescriptionIdParamSchema), async (req: Request, res: Response) => {
   try {
     const { prescriptionId } = req.params;
 
@@ -76,7 +78,7 @@ router.post('/qr-codes/generate/:prescriptionId', authenticateToken, requireRole
  * Verify QR code
  * GET /api/v1/qr-codes/verify/:qrHash
  */
-router.get('/qr-codes/verify/:qrHash', authenticateToken, async (req: Request, res: Response) => {
+router.get('/qr-codes/verify/:qrHash', authenticateToken, validateParams(qrHashParamSchema), async (req: Request, res: Response) => {
   try {
     const { qrHash } = req.params;
 
@@ -134,7 +136,7 @@ router.get('/qr-codes/verify/:qrHash', authenticateToken, async (req: Request, r
  * Get QR code statistics
  * GET /api/v1/qr-codes/stats/:qrHash
  */
-router.get('/qr-codes/stats/:qrHash', authenticateToken, async (req: Request, res: Response) => {
+router.get('/qr-codes/stats/:qrHash', authenticateToken, validateParams(qrHashParamSchema), async (req: Request, res: Response) => {
   try {
     const { qrHash } = req.params;
 
@@ -180,7 +182,7 @@ router.get('/qr-codes/stats/:qrHash', authenticateToken, async (req: Request, re
  * Send prescription email with QR code
  * POST /api/v1/qr-codes/email/:prescriptionId
  */
-router.post('/qr-codes/email/:prescriptionId', authenticateToken, requireRole([UserRole.DOCTOR, UserRole.ADMIN]), async (req: Request, res: Response) => {
+router.post('/qr-codes/email/:prescriptionId', authenticateToken, requireRole([UserRole.DOCTOR, UserRole.ADMIN]), validateParams(prescriptionIdParamSchema), async (req: Request, res: Response) => {
   try {
     const { prescriptionId } = req.params;
 
@@ -264,7 +266,7 @@ router.post('/qr-codes/email/:prescriptionId', authenticateToken, requireRole([U
  * Get QR code for a prescription (if exists)
  * GET /api/v1/qr-codes/:prescriptionId
  */
-router.get('/qr-codes/:prescriptionId', authenticateToken, requireRole([UserRole.DOCTOR, UserRole.ADMIN, UserRole.PATIENT]), async (req: Request, res: Response) => {
+router.get('/qr-codes/:prescriptionId', authenticateToken, requireRole([UserRole.DOCTOR, UserRole.ADMIN, UserRole.PATIENT]), validateParams(prescriptionIdParamSchema), async (req: Request, res: Response) => {
   try {
     const { prescriptionId } = req.params;
 
