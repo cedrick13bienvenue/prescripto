@@ -40,6 +40,10 @@ const options: any = {
         name: 'Doctors',
         description: 'Doctor management and professional profiles',
       },
+      {
+        name: 'QR Codes',
+        description: 'QR code generation, verification, and management for prescriptions',
+      },
     ],
     components: {
       securitySchemes: {
@@ -57,9 +61,11 @@ const options: any = {
     path.join(__dirname, 'paths/auth.yaml'),
     path.join(__dirname, 'paths/patients.yaml'),
     path.join(__dirname, 'paths/doctors.yaml'),
+    path.join(__dirname, 'paths/qrCodes.yaml'),
     path.join(__dirname, 'schemas/auth.yaml'),
     path.join(__dirname, 'schemas/patients.yaml'),
     path.join(__dirname, 'schemas/doctors.yaml'),
+    path.join(__dirname, 'schemas/qrCodes.yaml'),
     path.join(__dirname, 'schemas/common.yaml'),
   ],
 };
