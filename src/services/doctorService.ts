@@ -87,17 +87,23 @@ export class DoctorService {
     }
   }
 
-  // Get all doctors
-  static async getAllDoctors(): Promise<DoctorProfile[]> {
+  // Get all doctors with pagination
+  static async getAllDoctors(page: number = 1, limit: number = 10, sortBy: string = 'createdAt', sortOrder: 'ASC' | 'DESC' = 'DESC'): Promise<{ doctors: DoctorProfile[], total: number }> {
     try {
-      const doctors = await Doctor.findAll({
+      const offset = (page - 1) * limit;
+      
+      const { count, rows: doctors } = await Doctor.findAndCountAll({
         include: [{
           association: 'user',
-          attributes: ['email', 'fullName', 'phone']
-        }]
+          attributes: ['email', 'fullName', 'phone', 'isActive'],
+          where: { isActive: true }
+        }],
+        limit,
+        offset,
+        order: [[sortBy, sortOrder]],
       });
 
-      return doctors.map(doctor => ({
+      const doctorProfiles = doctors.map(doctor => ({
         id: doctor.id,
         userId: doctor.userId,
         email: doctor.email,
@@ -109,6 +115,11 @@ export class DoctorService {
         phone: (doctor as any).user?.phone,
         createdAt: doctor.createdAt,
       }));
+
+      return {
+        doctors: doctorProfiles,
+        total: count
+      };
     } catch (error) {
       console.error('Error getting all doctors:', error);
       throw error;

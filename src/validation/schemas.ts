@@ -141,6 +141,23 @@ export const paginationSchema = Joi.object({
   limit: Joi.number().min(1).max(100).default(10)
 });
 
+// Advanced Pagination Schema (with sorting)
+export const advancedPaginationSchema = Joi.object({
+  page: Joi.number().min(1).default(1),
+  limit: Joi.number().min(1).max(100).default(10),
+  sortBy: Joi.string().valid('createdAt', 'updatedAt', 'fullName', 'email', 'visitDate', 'prescriptionNumber').default('createdAt'),
+  sortOrder: Joi.string().valid('ASC', 'DESC').default('DESC')
+});
+
+// Medical History Pagination Schema
+export const medicalHistoryPaginationSchema = Joi.object({
+  page: Joi.number().min(1).default(1),
+  limit: Joi.number().min(1).max(50).default(10),
+  type: Joi.string().valid('visits', 'prescriptions', 'all').default('all'),
+  sortBy: Joi.string().valid('createdAt', 'visitDate', 'prescriptionNumber').default('createdAt'),
+  sortOrder: Joi.string().valid('ASC', 'DESC').default('DESC')
+});
+
 // User ID Parameter Schema
 export const userIdParamSchema = Joi.object({
   userId: uuidPattern

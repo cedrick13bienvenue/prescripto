@@ -169,3 +169,66 @@ components:
                   value:
                     type: string
                     example: "abc123def456ghi789"
+
+    QRCodeListItem:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        qrHash:
+          type: string
+          example: "abc123def456ghi789jkl012mno345pqr"
+        prescriptionId:
+          type: string
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174001"
+        isUsed:
+          type: boolean
+          example: false
+        isExpired:
+          type: boolean
+          example: false
+        scanCount:
+          type: integer
+          example: 0
+        createdAt:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+        expiresAt:
+          type: string
+          format: date-time
+          example: "2024-01-22T10:30:00Z"
+        prescription:
+          type: object
+          properties:
+            prescriptionNumber:
+              type: string
+              example: "RX-2024-001234"
+            diagnosis:
+              type: string
+              example: "Hypertension"
+            status:
+              type: string
+              enum: ["pending", "fulfilled", "cancelled"]
+              example: "pending"
+            patient:
+              type: object
+              properties:
+                fullName:
+                  type: string
+                  example: "John Doe"
+                email:
+                  type: string
+                  example: "john.doe@example.com"
+            doctor:
+              type: object
+              properties:
+                fullName:
+                  type: string
+                  example: "Dr. Jane Smith"
+                email:
+                  type: string
+                  example: "jane.smith@hospital.com"

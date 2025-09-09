@@ -5,8 +5,9 @@ import { EmailService } from '../services/emailService';
 import { authenticateToken, requireRole } from '../middleware/auth';
 import { UserRole } from '../models';
 import { Prescription } from '../models';
-import { validateParams } from '../middleware/validation';
-import { prescriptionIdParamSchema, qrHashParamSchema } from '../validation/schemas';
+import { validateParams, validateQuery } from '../middleware/validation';
+import { prescriptionIdParamSchema, qrHashParamSchema, advancedPaginationSchema } from '../validation/schemas';
+import { createPaginationResponse } from '../types/common';
 
 const router = Router();
 
@@ -344,6 +345,35 @@ router.get('/qr-codes/:prescriptionId', authenticateToken, requireRole([UserRole
       success: false,
       error: {
         message: error.message || 'Failed to get QR code',
+        statusCode: 500,
+      },
+    });
+  }
+});
+
+/**
+ * Get all QR codes with pagination (admin only)
+ * GET /api/v1/qr-codes
+ */
+router.get('/qr-codes', authenticateToken, requireRole([UserRole.ADMIN]), validateQuery(advancedPaginationSchema), async (req: Request, res: Response) => {
+  try {
+    const { page = 1, limit = 10, sortBy = 'createdAt', sortOrder = 'DESC' } = req.query;
+    const pageNum = parseInt(page as string);
+    const limitNum = parseInt(limit as string);
+
+    const result = await QRCodeService.getAllQRCodes(pageNum, limitNum, sortBy as string, sortOrder as 'ASC' | 'DESC');
+
+    res.status(200).json({
+      success: true,
+      data: result.qrCodes,
+      pagination: createPaginationResponse(pageNum, limitNum, result.total),
+    });
+  } catch (error: any) {
+    console.error('Get QR codes error:', error);
+    res.status(500).json({
+      success: false,
+      error: {
+        message: error.message || 'Failed to fetch QR codes',
         statusCode: 500,
       },
     });

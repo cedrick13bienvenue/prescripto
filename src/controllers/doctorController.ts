@@ -3,6 +3,9 @@ import { DoctorService } from '../services/doctorService';
 import { AuthService } from '../services/authService';
 import { UserRole } from '../models';
 import { DoctorRegistrationData, RegisterData } from '../types';
+import { validateQuery } from '../middleware/validation';
+import { advancedPaginationSchema } from '../validation/schemas';
+import { createPaginationResponse } from '../types/common';
 
 export class DoctorController {
   // Register doctor (admin only)
@@ -95,14 +98,19 @@ export class DoctorController {
     }
   }
 
-  // Get all doctors (admin only)
+  // Get all doctors with pagination (admin only)
   static async getAllDoctors(req: Request, res: Response) {
     try {
-      const doctors = await DoctorService.getAllDoctors();
+      const { page = 1, limit = 10, sortBy = 'createdAt', sortOrder = 'DESC' } = req.query;
+      const pageNum = parseInt(page as string);
+      const limitNum = parseInt(limit as string);
+
+      const result = await DoctorService.getAllDoctors(pageNum, limitNum, sortBy as string, sortOrder as 'ASC' | 'DESC');
 
       res.status(200).json({
         success: true,
-        data: doctors,
+        data: result.doctors,
+        pagination: createPaginationResponse(pageNum, limitNum, result.total),
       });
     } catch (error: any) {
       console.error('Get doctors error:', error);

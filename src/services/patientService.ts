@@ -288,9 +288,15 @@ static async getAllPatients (limit: number = 10, offset: number = 0): Promise<{ 
     return visit;
   }
 
-  // Get patient medical history
-  static async getPatientMedicalHistory (patientId: string): Promise<any> {
-    const visits = await MedicalVisit.findAll({
+  // Get patient medical history with pagination
+  static async getPatientMedicalHistory (patientId: string, page: number = 1, limit: number = 10, type: 'visits' | 'prescriptions' | 'all' = 'all', sortBy: string = 'createdAt', sortOrder: 'ASC' | 'DESC' = 'DESC'): Promise<{ visits?: any[], prescriptions?: any[], total: number, pagination: any }> {
+    const offset = (page - 1) * limit;
+    let visits: any[] = [];
+    let prescriptions: any[] = [];
+    let total = 0;
+
+    if (type === 'visits' || type === 'all') {
+      const visitsResult = await MedicalVisit.findAndCountAll({
       where: { patientId },
       include: [
         {
@@ -303,10 +309,31 @@ static async getAllPatients (limit: number = 10, offset: number = 0): Promise<{ 
           }]
         },
       ],
-      order: [['visitDate', 'DESC']],
-    });
+        order: [[sortBy === 'visitDate' ? 'visitDate' : 'createdAt', sortOrder]],
+        limit: type === 'visits' ? limit : undefined,
+        offset: type === 'visits' ? offset : undefined,
+      });
 
-    const prescriptions = await Prescription.findAll({
+      visits = visitsResult.rows.map(visit => ({
+        id: visit.id,
+        visitDate: visit.visitDate,
+        visitType: visit.visitType,
+        chiefComplaint: visit.chiefComplaint,
+        symptoms: visit.symptoms,
+        diagnosis: visit.diagnosis,
+        treatmentNotes: visit.treatmentNotes,
+        recommendations: visit.recommendations,
+        doctor: (visit as any).doctor,
+        createdAt: visit.createdAt,
+      }));
+
+      if (type === 'visits') {
+        total = visitsResult.count;
+      }
+    }
+
+    if (type === 'prescriptions' || type === 'all') {
+      const prescriptionsResult = await Prescription.findAndCountAll({
       where: { patientId },
       include: [
         {
@@ -323,23 +350,12 @@ static async getAllPatients (limit: number = 10, offset: number = 0): Promise<{ 
           as: 'items',
         },
       ],
-      order: [['createdAt', 'DESC']],
-    });
+        order: [[sortBy === 'prescriptionNumber' ? 'prescriptionNumber' : 'createdAt', sortOrder]],
+        limit: type === 'prescriptions' ? limit : undefined,
+        offset: type === 'prescriptions' ? offset : undefined,
+      });
 
-    return {
-      visits: visits.map(visit => ({
-        id: visit.id,
-        visitDate: visit.visitDate,
-        visitType: visit.visitType,
-        chiefComplaint: visit.chiefComplaint,
-        symptoms: visit.symptoms,
-        diagnosis: visit.diagnosis,
-        treatmentNotes: visit.treatmentNotes,
-        recommendations: visit.recommendations,
-        doctor: (visit as any).doctor,
-        createdAt: visit.createdAt,
-      })),
-      prescriptions: prescriptions.map(prescription => ({
+      prescriptions = prescriptionsResult.rows.map(prescription => ({
         id: prescription.id,
         prescriptionNumber: prescription.prescriptionNumber,
         diagnosis: prescription.diagnosis,
@@ -348,7 +364,34 @@ static async getAllPatients (limit: number = 10, offset: number = 0): Promise<{ 
         items: (prescription as any).items,
         doctor: (prescription as any).doctor,
         createdAt: prescription.createdAt,
-      })),
+      }));
+
+      if (type === 'prescriptions') {
+        total = prescriptionsResult.count;
+      }
+    }
+
+    if (type === 'all') {
+      // For 'all' type, we need to get the total count of both visits and prescriptions
+      const [visitsCount, prescriptionsCount] = await Promise.all([
+        MedicalVisit.count({ where: { patientId } }),
+        Prescription.count({ where: { patientId } })
+      ]);
+      total = visitsCount + prescriptionsCount;
+    }
+
+    return {
+      visits: type === 'visits' || type === 'all' ? visits : undefined,
+      prescriptions: type === 'prescriptions' || type === 'all' ? prescriptions : undefined,
+      total,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+        hasNextPage: page < Math.ceil(total / limit),
+        hasPrevPage: page > 1
+      }
     };
   }
 
@@ -462,9 +505,11 @@ static async getAllPatients (limit: number = 10, offset: number = 0): Promise<{ 
     return prescription;
   }
 
-  // Get patient prescriptions
-  static async getPatientPrescriptions (patientId: string): Promise<any[]> {
-    const prescriptions = await Prescription.findAll({
+  // Get patient prescriptions with pagination
+  static async getPatientPrescriptions (patientId: string, page: number = 1, limit: number = 10, sortBy: string = 'createdAt', sortOrder: 'ASC' | 'DESC' = 'DESC'): Promise<{ prescriptions: any[], total: number }> {
+    const offset = (page - 1) * limit;
+    
+    const { count, rows: prescriptions } = await Prescription.findAndCountAll({
       where: { patientId },
       include: [
         {
@@ -481,10 +526,12 @@ static async getAllPatients (limit: number = 10, offset: number = 0): Promise<{ 
           as: 'items',
         },
       ],
-      order: [['createdAt', 'DESC']],
+      order: [[sortBy, sortOrder]],
+      limit,
+      offset,
     });
 
-    return prescriptions.map(prescription => ({
+    const prescriptionData = prescriptions.map(prescription => ({
       id: prescription.id,
       prescriptionNumber: prescription.prescriptionNumber,
       diagnosis: prescription.diagnosis,
@@ -494,6 +541,11 @@ static async getAllPatients (limit: number = 10, offset: number = 0): Promise<{ 
       doctor: (prescription as any).doctor,
       createdAt: prescription.createdAt,
     }));
+
+    return {
+      prescriptions: prescriptionData,
+      total: count,
+    };
   }
 
   // Search patients by name or reference number

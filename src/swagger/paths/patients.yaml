@@ -40,20 +40,7 @@ paths:
                     items:
                       $ref: "#/components/schemas/PatientProfile"
                   pagination:
-                    type: object
-                    properties:
-                      page:
-                        type: integer
-                        example: 1
-                      limit:
-                        type: integer
-                        example: 10
-                      total:
-                        type: integer
-                        example: 100
-                      totalPages:
-                        type: integer
-                        example: 10
+                    $ref: "#/components/schemas/Pagination"
         401:
           description: Unauthorized - token required
           content:
@@ -349,6 +336,42 @@ paths:
             type: string
             format: uuid
           description: Patient ID
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: Page number for pagination
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 10
+          description: Number of items per page (max 50)
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: ["visits", "prescriptions", "all"]
+            default: all
+          description: Type of medical history to retrieve
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+            enum: ["createdAt", "visitDate", "prescriptionNumber"]
+            default: createdAt
+          description: Field to sort by
+        - name: sortOrder
+          in: query
+          schema:
+            type: string
+            enum: ["ASC", "DESC"]
+            default: DESC
+          description: Sort order
       responses:
         200:
           description: Medical history retrieved successfully
@@ -371,6 +394,8 @@ paths:
                         type: array
                         items:
                           $ref: "#/components/schemas/PrescriptionResponse"
+                  pagination:
+                    $ref: "#/components/schemas/Pagination"
         401:
           description: Unauthorized - token required
           content:
@@ -507,7 +532,7 @@ paths:
       tags:
         - Patients
       summary: Get patient prescriptions
-      description: Retrieve all prescriptions for a patient
+      description: Retrieve all prescriptions for a patient with pagination
       security:
         - bearerAuth: []
       parameters:
@@ -518,6 +543,35 @@ paths:
             type: string
             format: uuid
           description: Patient ID
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: Page number for pagination
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+          description: Number of prescriptions per page
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+            enum: ["createdAt", "prescriptionNumber"]
+            default: createdAt
+          description: Field to sort by
+        - name: sortOrder
+          in: query
+          schema:
+            type: string
+            enum: ["ASC", "DESC"]
+            default: DESC
+          description: Sort order
       responses:
         200:
           description: Prescriptions retrieved successfully
@@ -533,6 +587,8 @@ paths:
                     type: array
                     items:
                       $ref: "#/components/schemas/PrescriptionResponse"
+                  pagination:
+                    $ref: "#/components/schemas/Pagination"
         401:
           description: Unauthorized - token required
           content:

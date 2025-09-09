@@ -1,6 +1,6 @@
 import QRCode from 'qrcode';
 import crypto from 'crypto';
-import { QRCode as QRCodeModel, Prescription } from '../models';
+import { QRCode as QRCodeModel, Prescription, Patient, Doctor, User } from '../models';
 import { PrescriptionStatus } from '../models/Prescription';
 
 export interface QRCodeData {
@@ -320,6 +320,80 @@ export class QRCodeService {
     } catch (error: any) {
       console.error('Error getting QR code stats:', error);
       throw new Error(`Failed to get QR code stats: ${error.message}`);
+    }
+  }
+
+  // Get all QR codes with pagination
+  static async getAllQRCodes(page: number = 1, limit: number = 10, sortBy: string = 'createdAt', sortOrder: 'ASC' | 'DESC' = 'DESC'): Promise<{ qrCodes: any[], total: number }> {
+    try {
+      const offset = (page - 1) * limit;
+      
+      const { count, rows: qrCodes } = await QRCodeModel.findAndCountAll({
+        include: [
+          {
+            model: Prescription,
+            as: 'prescription',
+            include: [
+              {
+                model: Patient,
+                as: 'patient',
+                include: [{
+                  model: User,
+                  as: 'user',
+                  attributes: ['fullName', 'email']
+                }]
+              },
+              {
+                model: Doctor,
+                as: 'doctor',
+                include: [{
+                  model: User,
+                  as: 'user',
+                  attributes: ['fullName', 'email']
+                }]
+              }
+            ]
+          }
+        ],
+        limit,
+        offset,
+        order: [[sortBy, sortOrder]],
+      });
+
+      const qrCodeData = qrCodes.map(qrCode => {
+        const qrCodeData = qrCode as any;
+        return {
+          id: qrCode.id,
+          qrHash: qrCode.qrHash,
+          prescriptionId: qrCode.prescriptionId,
+          isUsed: qrCode.isUsed,
+          isExpired: qrCode.isExpired(),
+          scanCount: qrCode.scanCount,
+          createdAt: qrCode.createdAt,
+          expiresAt: qrCode.expiresAt,
+          prescription: qrCodeData.prescription ? {
+            prescriptionNumber: qrCodeData.prescription.prescriptionNumber,
+            diagnosis: qrCodeData.prescription.diagnosis,
+            status: qrCodeData.prescription.status,
+            patient: qrCodeData.prescription.patient ? {
+              fullName: qrCodeData.prescription.patient.user?.fullName,
+              email: qrCodeData.prescription.patient.user?.email
+            } : null,
+            doctor: qrCodeData.prescription.doctor ? {
+              fullName: qrCodeData.prescription.doctor.user?.fullName,
+              email: qrCodeData.prescription.doctor.user?.email
+            } : null
+          } : null
+        };
+      });
+
+      return {
+        qrCodes: qrCodeData,
+        total: count
+      };
+    } catch (error: any) {
+      console.error('Error getting all QR codes:', error);
+      throw new Error(`Failed to get QR codes: ${error.message}`);
     }
   }
 }

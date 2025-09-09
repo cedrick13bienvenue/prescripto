@@ -2,17 +2,17 @@ components:
   schemas:
     Gender:
       type: string
-      enum: [male, female, other]
+      enum: ["male", "female", "other"]
       description: Patient gender
 
     VisitType:
       type: string
-      enum: [consultation, emergency, followup]
+      enum: ["consultation", "emergency", "followup"]
       description: Type of medical visit
 
     PrescriptionStatus:
       type: string
-      enum: [pending, fulfilled, cancelled]
+      enum: ["pending", "fulfilled", "cancelled"]
       description: Status of prescription
 
     PatientRegistration:

@@ -11,6 +11,7 @@ import {
   prescriptionSchema, 
   searchQuerySchema, 
   paginationSchema,
+  medicalHistoryPaginationSchema,
   patientIdParamSchema,
   referenceNumberParamSchema
 } from '../validation/schemas';
@@ -358,11 +359,26 @@ static async getAllPatients (req: Request, res: Response) {
         }
       }
 
-      const history = await PatientService.getPatientMedicalHistory(patientId);
+      const { page = 1, limit = 10, type = 'all', sortBy = 'createdAt', sortOrder = 'DESC' } = req.query;
+      const pageNum = parseInt(page as string);
+      const limitNum = parseInt(limit as string);
+
+      const history = await PatientService.getPatientMedicalHistory(
+        patientId, 
+        pageNum, 
+        limitNum, 
+        type as 'visits' | 'prescriptions' | 'all',
+        sortBy as string,
+        sortOrder as 'ASC' | 'DESC'
+      );
 
       res.status(200).json({
         success: true,
-        data: history,
+        data: {
+          visits: history.visits,
+          prescriptions: history.prescriptions,
+        },
+        pagination: history.pagination,
       });
     } catch (error: any) {
       res.status(500).json({
@@ -430,6 +446,9 @@ static async getAllPatients (req: Request, res: Response) {
   static async getPatientPrescriptions (req: Request, res: Response) {
     try {
       const { patientId } = req.params;
+      const { page = 1, limit = 10, sortBy = 'createdAt', sortOrder = 'DESC' } = req.query;
+      const pageNum = parseInt(page as string);
+      const limitNum = parseInt(limit as string);
 
       if (!patientId) {
         return res.status(400).json({
@@ -441,11 +460,19 @@ static async getAllPatients (req: Request, res: Response) {
         });
       }
 
-      const prescriptions = await PatientService.getPatientPrescriptions(patientId);
+      const result = await PatientService.getPatientPrescriptions(patientId, pageNum, limitNum, sortBy as string, sortOrder as 'ASC' | 'DESC');
 
       res.status(200).json({
         success: true,
-        data: prescriptions,
+        data: result.prescriptions,
+        pagination: {
+          page: pageNum,
+          limit: limitNum,
+          total: result.total,
+          totalPages: Math.ceil(result.total / limitNum),
+          hasNextPage: pageNum < Math.ceil(result.total / limitNum),
+          hasPrevPage: pageNum > 1,
+        },
       });
     } catch (error: any) {
       res.status(500).json({

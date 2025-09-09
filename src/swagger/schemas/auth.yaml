@@ -2,7 +2,7 @@ components:
   schemas:
     UserRole:
       type: string
-      enum: [patient, doctor, pharmacist, admin]
+      enum: ["patient", "doctor", "pharmacist", "admin"]
       description: User role in the system
 
     UserRegistration:

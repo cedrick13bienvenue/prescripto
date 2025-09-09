@@ -1,6 +1,67 @@
 # QR Code Management Endpoints
 
 paths:
+  /qr-codes:
+    get:
+      tags:
+        - QR Codes
+      summary: Get all QR codes with pagination
+      description: Retrieve a paginated list of all QR codes - admin only
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: Page number for pagination
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+          description: Number of QR codes per page
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+            enum: ["createdAt", "updatedAt", "qrHash", "scanCount"]
+            default: createdAt
+          description: Field to sort by
+        - name: sortOrder
+          in: query
+          schema:
+            type: string
+            enum: ["ASC", "DESC"]
+            default: DESC
+          description: Sort order
+      responses:
+        200:
+          description: QR codes retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/QRCodeListItem"
+                  pagination:
+                    $ref: "#/components/schemas/Pagination"
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/InternalServerError"
   /qr-codes/generate/{prescriptionId}:
     post:
       tags:
