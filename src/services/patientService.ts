@@ -2,6 +2,8 @@ import { Patient, User, MedicalVisit, Prescription, PrescriptionItem, UserRole }
 import Doctor from '../models/Doctor';
 import { VisitType } from '../models/MedicalVisit';
 import { PrescriptionStatus } from '../models/Prescription';
+import { QRCodeService } from './qrCodeService';
+import { EmailService } from './emailService';
 import { 
   PatientRegistrationData, 
   PatientProfile, 
@@ -409,6 +411,52 @@ static async getAllPatients (limit: number = 10, offset: number = 0): Promise<{ 
         quantity: itemData.quantity,
         instructions: itemData.instructions || '',
       });
+    }
+
+    // Generate QR code for the prescription
+    try {
+      const qrResult = await QRCodeService.generateQRCode(prescription.id);
+      
+      // Update prescription with QR code hash
+      await prescription.update({
+        qrCodeHash: qrResult.qrHash
+      });
+
+      // Send email to patient with QR code
+      try {
+        const patientWithUser = await Patient.findByPk(data.patientId, {
+          include: [{ association: 'user' }]
+        });
+
+        if (patientWithUser && (patientWithUser as any).user) {
+          const emailData = {
+            patientName: (patientWithUser as any).user.fullName,
+            patientEmail: (patientWithUser as any).user.email,
+            prescriptionNumber: prescription.prescriptionNumber || '',
+            doctorName: (doctor as any).user.fullName,
+            diagnosis: prescription.diagnosis,
+            medicines: data.items.map(item => ({
+              name: item.medicineName,
+              dosage: item.dosage,
+              frequency: item.frequency,
+              quantity: item.quantity,
+              instructions: item.instructions
+            })),
+            qrCodeImage: qrResult.qrCodeImage,
+            qrHash: qrResult.qrHash,
+            expiresAt: qrResult.expiresAt.toISOString()
+          };
+
+          await EmailService.sendPrescriptionEmail(emailData);
+          console.log(`✅ Prescription email sent to ${(patientWithUser as any).user.email}`);
+        }
+      } catch (emailError) {
+        console.error('❌ Failed to send prescription email:', emailError);
+        // Don't throw error - prescription is still created successfully
+      }
+    } catch (qrError) {
+      console.error('❌ Failed to generate QR code:', qrError);
+      // Don't throw error - prescription is still created successfully
     }
 
     return prescription;

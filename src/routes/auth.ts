@@ -6,18 +6,20 @@ import {
   requireRole,
 } from '../middleware/auth';
 import { UserRole } from '../models';
+import { validateBody, validateParams } from '../middleware/validation';
+import { userLoginSchema, passwordChangeSchema, userIdParamSchema } from '../validation/schemas';
 
 const router = Router();
 
 // Public routes - login only
-router.post('/auth/login', AuthController.login);
+router.post('/auth/login', validateBody(userLoginSchema), AuthController.login);
 
 // Protected routes
 router.get('/auth/profile', authenticateToken, requireRole([UserRole.DOCTOR, UserRole.ADMIN]), AuthController.getProfile);
-router.put('/auth/change-password', authenticateToken, requireRole([UserRole.DOCTOR, UserRole.ADMIN, UserRole.PATIENT, UserRole.PHARMACIST]), AuthController.changePassword);
+router.put('/auth/change-password', authenticateToken, requireRole([UserRole.DOCTOR, UserRole.ADMIN, UserRole.PATIENT, UserRole.PHARMACIST]), validateBody(passwordChangeSchema), AuthController.changePassword);
 
 // Admin only routes
-router.put('/auth/users/:userId/deactivate', authenticateToken, requireAdmin, AuthController.deactivateUser);
-router.put('/auth/users/:userId/reactivate', authenticateToken, requireAdmin, AuthController.reactivateUser);
+router.put('/auth/users/:userId/deactivate', authenticateToken, requireAdmin, validateParams(userIdParamSchema), AuthController.deactivateUser);
+router.put('/auth/users/:userId/reactivate', authenticateToken, requireAdmin, validateParams(userIdParamSchema), AuthController.reactivateUser);
 
 export default router;

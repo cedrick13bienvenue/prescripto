@@ -5,6 +5,7 @@ import { connectDatabase } from './database/config/database';
 import './models'; 
 import { routers } from './routes';
 import { swaggerRouter } from './routes/swaggerRoutes';
+import { sanitizeInput } from './middleware/validation';
 
 // Load environment variables
 dotenv.config();
@@ -15,6 +16,7 @@ const PORT = process.env['PORT'] || 3000;
 // Basic middleware
 app.use(cors());
 app.use(express.json());
+app.use(sanitizeInput);
 
 // Health check endpoint
 app.get('/health', (_req, res) => {

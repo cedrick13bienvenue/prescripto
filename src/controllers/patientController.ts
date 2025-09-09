@@ -3,6 +3,17 @@ import { PatientService } from '../services/patientService';
 import { authenticateToken, requireRole } from '../middleware/auth';
 import { UserRole } from '../models';
 import { PatientRegistrationData, MedicalVisitData, PrescriptionData } from '../types';
+import { validateBody, validateQuery, validateParams } from '../middleware/validation';
+import { 
+  patientRegistrationSchema, 
+  patientUpdateSchema, 
+  medicalVisitSchema, 
+  prescriptionSchema, 
+  searchQuerySchema, 
+  paginationSchema,
+  patientIdParamSchema,
+  referenceNumberParamSchema
+} from '../validation/schemas';
 
 export class PatientController {
 

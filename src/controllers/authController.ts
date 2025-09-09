@@ -3,6 +3,8 @@ import { AuthService } from '../services/authService';
 import { AuthenticatedRequest } from '../middleware/auth';
 import { UserRole } from '../models';
 import { LoginCredentials, ChangePasswordData } from '../types';
+import { validateBody } from '../middleware/validation';
+import { userLoginSchema, passwordChangeSchema } from '../validation/schemas';
 
 export class AuthController {
 
@@ -11,17 +13,6 @@ export class AuthController {
   static async login (req: Request, res: Response) {
     try {
       const credentials: LoginCredentials = req.body;
-
-      // Basic validation
-      if (!credentials.email || !credentials.password) {
-        return res.status(400).json({
-          success: false,
-          error: {
-            message: 'Email and password are required',
-            statusCode: 400,
-          },
-        });
-      }
 
       const result = await AuthService.login(credentials);
 
@@ -86,27 +77,6 @@ export class AuthController {
       }
 
       const { currentPassword, newPassword } = req.body;
-
-      if (!currentPassword || !newPassword) {
-        return res.status(400).json({
-          success: false,
-          error: {
-            message: 'Current password and new password are required',
-            statusCode: 400,
-          },
-        });
-      }
-
-      // Password strength validation
-      if (newPassword.length < 6) {
-        return res.status(400).json({
-          success: false,
-          error: {
-            message: 'New password must be at least 6 characters long',
-            statusCode: 400,
-          },
-        });
-      }
 
       const result = await AuthService.changePassword(req.user.id, currentPassword, newPassword);
 
