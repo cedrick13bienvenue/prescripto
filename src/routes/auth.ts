@@ -17,6 +17,7 @@ router.post('/auth/login', validateBody(userLoginSchema), AuthController.login);
 // Protected routes
 router.get('/auth/profile', authenticateToken, requireRole([UserRole.DOCTOR, UserRole.ADMIN]), AuthController.getProfile);
 router.put('/auth/change-password', authenticateToken, requireRole([UserRole.DOCTOR, UserRole.ADMIN, UserRole.PATIENT, UserRole.PHARMACIST]), validateBody(passwordChangeSchema), AuthController.changePassword);
+router.post('/auth/logout', authenticateToken, AuthController.logout);
 
 // Admin only routes
 router.put('/auth/users/:userId/deactivate', authenticateToken, requireAdmin, validateParams(userIdParamSchema), AuthController.deactivateUser);

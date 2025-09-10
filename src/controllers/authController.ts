@@ -178,4 +178,47 @@ export class AuthController {
       });
     }
   }
+
+  // User logout
+  static async logout (req: AuthenticatedRequest, res: Response) {
+    try {
+      if (!req.user) {
+        return res.status(401).json({
+          success: false,
+          error: {
+            message: 'Authentication required',
+            statusCode: 401,
+          },
+        });
+      }
+
+      const authHeader = req.headers['authorization'];
+      const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
+
+      if (!token) {
+        return res.status(400).json({
+          success: false,
+          error: {
+            message: 'Token is required for logout',
+            statusCode: 400,
+          },
+        });
+      }
+
+      const result = await AuthService.logout(token, req.user.id);
+
+      res.status(200).json({
+        success: true,
+        message: result.message,
+      });
+    } catch (error: any) {
+      res.status(400).json({
+        success: false,
+        error: {
+          message: error.message,
+          statusCode: 400,
+        },
+      });
+    }
+  }
 }

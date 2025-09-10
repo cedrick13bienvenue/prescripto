@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { User, UserRole } from '../models';
+import { User, UserRole, TokenBlacklist } from '../models';
 import Doctor from '../models/Doctor';
 import Patient from '../models/Patient';
 import { LoginCredentials, RegisterData, AuthResponse, UserProfile, ChangePasswordData, JwtPayload } from '../types';
@@ -193,5 +193,50 @@ export class AuthService {
 
     await user.update({ isActive: true });
     return { message: 'User reactivated successfully' };
+  }
+
+  // User logout - blacklist token
+  static async logout (token: string, userId: string) {
+    try {
+      // Decode token to get expiration time
+      const secret = process.env['JWT_SECRET'];
+      if (!secret) {
+        throw new Error('JWT_SECRET not configured');
+      }
+
+      const decoded = jwt.verify(token, secret) as any;
+      const expiresAt = new Date(decoded.exp * 1000); // Convert from seconds to milliseconds
+
+      // Add token to blacklist
+      await TokenBlacklist.blacklistToken(token, userId, expiresAt);
+
+      return { message: 'Logout successful' };
+    } catch (error: any) {
+      // If token is invalid or expired, we still consider logout successful
+      // as the token is effectively invalidated
+      if (error.name === 'TokenExpiredError' || error.name === 'JsonWebTokenError') {
+        return { message: 'Logout successful' };
+      }
+      throw error;
+    }
+  }
+
+  // Check if token is blacklisted
+  static async isTokenBlacklisted (token: string): Promise<boolean> {
+    try {
+      return await TokenBlacklist.isTokenBlacklisted(token);
+    } catch (error) {
+      console.warn('Error checking token blacklist:', error);
+      return false; // If blacklist check fails, assume token is not blacklisted
+    }
+  }
+
+  // Clean up expired tokens from blacklist
+  static async cleanupExpiredTokens (): Promise<void> {
+    try {
+      await TokenBlacklist.cleanupExpiredTokens();
+    } catch (error) {
+      console.warn('Error cleaning up expired tokens:', error);
+    }
   }
 }

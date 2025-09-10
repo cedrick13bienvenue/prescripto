@@ -23,7 +23,8 @@
     "test:unit": "jest tests/",
     "test:services": "jest tests/services/",
     "test:controllers": "jest tests/controllers/",
-    "test:models": "jest tests/models/"
+    "test:models": "jest tests/models/",
+    "cleanup-tokens": "ts-node src/utils/tokenCleanup.ts"
   },
   "keywords": [
     "healthcare",
