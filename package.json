@@ -6,8 +6,9 @@
   "scripts": {
     "start": "node dist/scripts/startup.js",
     "dev": "nodemon src/server.ts",
-    "build": "tsc --project tsconfig.prod.json",
+    "build": "tsc --project tsconfig.prod.json && npm run copy-swagger-files",
     "build:dev": "tsc",
+    "copy-swagger-files": "cp -r src/swagger/paths dist/swagger/ && cp -r src/swagger/schemas dist/swagger/",
     "postbuild": "echo 'Build completed. Run migrations separately in production.'",
     "lint": "eslint . --ext .ts,.js,.mts,.mjs",
     "lint:fix": "eslint . --ext .ts,.js,.mts,.mjs --fix",
