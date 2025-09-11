@@ -1,7 +1,7 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "types": ["node"],
+    "types": ["node", "express", "cors", "jsonwebtoken", "bcryptjs", "nodemailer", "qrcode", "swagger-jsdoc", "swagger-ui-express", "uuid"],
     "skipLibCheck": true
   },
   "exclude": [
