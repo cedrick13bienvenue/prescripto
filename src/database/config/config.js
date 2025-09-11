@@ -38,10 +38,13 @@ module.exports = {
     dialect: "postgres",
     logging: false,
     dialectOptions: {
-      ssl: {
-        require: true,
-        rejectUnauthorized: false,
-      },
+      ssl:
+        process.env.DB_SSL === "false"
+          ? false
+          : {
+              require: true,
+              rejectUnauthorized: false,
+            },
     },
     define: {
       timestamps: true,
