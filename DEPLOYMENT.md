@@ -97,11 +97,11 @@ SMTP_SECURE=false
 
 ### Step 8: Database Migration
 
-The database migrations should run automatically during build. If not:
+The database migrations will run automatically when the server starts. If you need to run them manually:
 
 1. Go to your web service dashboard
 2. Click "Shell"
-3. Run: `npm run db:migrate`
+3. Run: `npm run migrate`
 
 ### Troubleshooting
 
