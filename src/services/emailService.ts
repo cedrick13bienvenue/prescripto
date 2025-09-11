@@ -199,11 +199,11 @@ export class EmailService {
   private static generatePrescriptionEmailHTML(data: PrescriptionEmailData): string {
     const medicinesList = data.medicines.map(medicine => `
       <tr>
-        <td style="padding: 8px; border-bottom: 1px solid #eee;">${medicine.name}</td>
-        <td style="padding: 8px; border-bottom: 1px solid #eee;">${medicine.dosage}</td>
-        <td style="padding: 8px; border-bottom: 1px solid #eee;">${medicine.frequency}</td>
-        <td style="padding: 8px; border-bottom: 1px solid #eee;">${medicine.quantity}</td>
-        <td style="padding: 8px; border-bottom: 1px solid #eee;">${medicine.instructions || 'As directed'}</td>
+        <td style="padding: 8px; border-bottom: 1px solid #eee; color: #000000;">${medicine.name}</td>
+        <td style="padding: 8px; border-bottom: 1px solid #eee; color: #000000;">${medicine.dosage}</td>
+        <td style="padding: 8px; border-bottom: 1px solid #eee; color: #000000;">${medicine.frequency}</td>
+        <td style="padding: 8px; border-bottom: 1px solid #eee; color: #000000;">${medicine.quantity}</td>
+        <td style="padding: 8px; border-bottom: 1px solid #eee; color: #000000;">${medicine.instructions || 'As directed'}</td>
       </tr>
     `).join('');
 
@@ -216,14 +216,14 @@ export class EmailService {
         
         <div style="padding: 20px; background-color: white;">
           <h2 style="color: #2c3e50;">Hello ${data.patientName},</h2>
-          <p>Your prescription has been created and is ready for pickup at any participating pharmacy.</p>
+          <p style="color: #000000;">Your prescription has been created and is ready for pickup at any participating pharmacy.</p>
           
           <div style="background-color: #ecf0f1; padding: 15px; border-radius: 5px; margin: 20px 0;">
             <h3 style="margin-top: 0; color: #2c3e50;">Prescription Details</h3>
-            <p><strong>Prescription Number:</strong> ${data.prescriptionNumber}</p>
-            <p><strong>Doctor:</strong> ${data.doctorName}</p>
-            ${data.diagnosis ? `<p><strong>Diagnosis:</strong> ${data.diagnosis}</p>` : ''}
-            <p><strong>Valid Until:</strong> ${new Date(data.expiresAt).toLocaleDateString()}</p>
+            <p style="color: #000000;"><strong>Prescription Number:</strong> ${data.prescriptionNumber}</p>
+            <p style="color: #000000;"><strong>Doctor:</strong> ${data.doctorName}</p>
+            ${data.diagnosis ? `<p style="color: #000000;"><strong>Diagnosis:</strong> ${data.diagnosis}</p>` : ''}
+            <p style="color: #000000;"><strong>Valid Until:</strong> ${new Date(data.expiresAt).toLocaleDateString()}</p>
           </div>
 
           <h3 style="color: #2c3e50;">Medications</h3>
@@ -244,16 +244,19 @@ export class EmailService {
 
           <div style="text-align: center; margin: 30px 0;">
             <h3 style="color: #2c3e50;">QR Code for Pharmacy</h3>
-            <p>Show this QR code to the pharmacist to retrieve your prescription:</p>
+            <p style="color: #000000;">Show this QR code to the pharmacist to retrieve your prescription:</p>
             <img src="cid:qr-code" alt="Prescription QR Code" style="max-width: 200px; border: 2px solid #bdc3c7; border-radius: 5px;">
             <p style="font-size: 12px; color: #7f8c8d; margin-top: 10px;">
               QR Code expires on ${new Date(data.expiresAt).toLocaleDateString()}
             </p>
+            <div style="background-color: #f8f9fa; padding: 10px; border-radius: 5px; margin-top: 15px; font-family: monospace; font-size: 12px; color: #666;">
+              <strong>QR Hash:</strong> ${data.qrHash}
+            </div>
           </div>
 
           <div style="background-color: #e8f5e8; padding: 15px; border-radius: 5px; margin: 20px 0;">
             <h4 style="margin-top: 0; color: #27ae60;">Important Instructions</h4>
-            <ul style="margin: 0; padding-left: 20px;">
+            <ul style="margin: 0; padding-left: 20px; color: #000000;">
               <li>Present this QR code at any participating pharmacy</li>
               <li>Bring a valid ID for verification</li>
               <li>Keep this email for your records</li>
