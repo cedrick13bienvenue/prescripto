@@ -7,6 +7,7 @@
     "start": "node dist/server.js",
     "dev": "nodemon src/server.ts",
     "build": "tsc",
+    "postbuild": "npm run db:migrate",
     "lint": "eslint . --ext .ts,.js,.mts,.mjs",
     "lint:fix": "eslint . --ext .ts,.js,.mts,.mjs --fix",
     "db:migrate": "sequelize-cli db:migrate",

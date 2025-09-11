@@ -1,0 +1,31 @@
+services:
+  - type: web
+    name: prescripto-backend
+    env: node
+    plan: starter
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: DB_DIALECT
+        value: postgres
+      - key: JWT_EXPIRES_IN
+        value: 24h
+      - key: SMTP_PORT
+        value: 587
+      - key: SMTP_SECURE
+        value: false
+      - key: FRONTEND_URL
+        value: https://your-frontend-domain.com
+    # Database will be configured separately in Render dashboard
+
+  - type: pserv
+    name: prescripto-database
+    plan: starter
+    env: postgres
+    region: oregon
+    postgresMajorVersion: 15
