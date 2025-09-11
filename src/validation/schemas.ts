@@ -178,9 +178,9 @@ export const prescriptionIdParamSchema = Joi.object({
   prescriptionId: uuidPattern
 });
 
-// QR Hash Parameter Schema
-export const qrHashParamSchema = Joi.object({
-  qrHash: Joi.string().length(32).pattern(/^[a-f0-9]+$/).required()
+// Pharmacist ID Parameter Schema
+export const pharmacistIdParamSchema = Joi.object({
+  pharmacistId: uuidPattern
 });
 
 // Reference Number Parameter Schema

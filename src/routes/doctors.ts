@@ -14,5 +14,6 @@ router.post('/doctors/register', authenticateToken, requireAdmin, DoctorControll
 router.get('/doctors', authenticateToken, requireAdmin, validateQuery(advancedPaginationSchema), DoctorController.getAllDoctors);
 router.get('/doctors/:doctorId', authenticateToken, requireAdmin, DoctorController.getDoctorById);
 router.put('/doctors/:doctorId', authenticateToken, requireAdmin, DoctorController.updateDoctorProfile);
+router.delete('/doctors/:doctorId', authenticateToken, requireAdmin, DoctorController.deleteDoctor);
 
 export default router;

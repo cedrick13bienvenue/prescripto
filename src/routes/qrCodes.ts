@@ -6,7 +6,7 @@ import { authenticateToken, requireRole } from '../middleware/auth';
 import { UserRole } from '../models';
 import { Prescription } from '../models';
 import { validateParams, validateQuery } from '../middleware/validation';
-import { prescriptionIdParamSchema, qrHashParamSchema, advancedPaginationSchema } from '../validation/schemas';
+import { prescriptionIdParamSchema, advancedPaginationSchema } from '../validation/schemas';
 import { createPaginationResponse } from '../types/common';
 
 const router = Router();
@@ -75,69 +75,14 @@ router.post('/qr-codes/generate/:prescriptionId', authenticateToken, requireRole
   }
 });
 
-/**
- * Verify QR code
- * GET /api/v1/qr-codes/verify/:qrHash
- */
-router.get('/qr-codes/verify/:qrHash', authenticateToken, validateParams(qrHashParamSchema), async (req: Request, res: Response) => {
-  try {
-    const { qrHash } = req.params;
-
-    if (!qrHash) {
-      return res.status(400).json({
-        success: false,
-        error: {
-          message: 'QR hash is required',
-          statusCode: 400,
-        },
-      });
-    }
-
-    // Verify QR code
-    const verificationResult = await QRCodeService.verifyQRCode(qrHash);
-
-    if (!verificationResult.isValid) {
-      return res.status(400).json({
-        success: false,
-        error: {
-          message: verificationResult.error || 'Invalid QR code',
-          statusCode: 400,
-        },
-        data: {
-          isValid: verificationResult.isValid,
-          isExpired: verificationResult.isExpired,
-          isUsed: verificationResult.isUsed,
-        },
-      });
-    }
-
-    res.status(200).json({
-      success: true,
-      message: 'QR code verified successfully',
-      data: {
-        isValid: verificationResult.isValid,
-        isExpired: verificationResult.isExpired,
-        isUsed: verificationResult.isUsed,
-        prescriptionData: verificationResult.prescriptionData,
-      },
-    });
-  } catch (error: any) {
-    console.error('QR code verification error:', error);
-    res.status(500).json({
-      success: false,
-      error: {
-        message: error.message || 'Failed to verify QR code',
-        statusCode: 500,
-      },
-    });
-  }
-});
+// Note: QR code verification is now handled through the pharmacy workflow
+// Use POST /pharmacy/scan instead of this standalone verification endpoint
 
 /**
  * Get QR code statistics
  * GET /api/v1/qr-codes/stats/:qrHash
  */
-router.get('/qr-codes/stats/:qrHash', authenticateToken, validateParams(qrHashParamSchema), async (req: Request, res: Response) => {
+router.get('/qr-codes/stats/:qrHash', authenticateToken, requireRole([UserRole.DOCTOR, UserRole.ADMIN, UserRole.PHARMACIST]), async (req: Request, res: Response) => {
   try {
     const { qrHash } = req.params;
 
@@ -197,12 +142,13 @@ router.post('/qr-codes/email/:prescriptionId', authenticateToken, requireRole([U
       });
     }
 
-    // Get prescription with related data
+    // Get prescription with related data including existing QR code
     const prescription = await Prescription.findByPk(prescriptionId, {
       include: [
         { association: 'patient', include: [{ association: 'user' }] },
         { association: 'doctor', include: [{ association: 'user' }] },
-        { association: 'items' }
+        { association: 'items' },
+        { association: 'qrCode' }
       ]
     });
 
@@ -216,8 +162,22 @@ router.post('/qr-codes/email/:prescriptionId', authenticateToken, requireRole([U
       });
     }
 
-    // Generate QR code
-    const qrResult = await QRCodeService.generateQRCode(prescriptionId);
+    // Check if QR code already exists and is still valid
+    let qrResult;
+    if ((prescription as any).qrCode && !(prescription as any).qrCode.isExpired()) {
+      // Use existing QR code
+      console.log('📧 Using existing QR code for email:', (prescription as any).qrCode.qrHash);
+      qrResult = {
+        qrCodeImage: await QRCodeService.generateQRCodeImage((prescription as any).qrCode.qrHash),
+        qrHash: (prescription as any).qrCode.qrHash,
+        encryptedData: (prescription as any).qrCode.encryptedData,
+        expiresAt: (prescription as any).qrCode.expiresAt
+      };
+    } else {
+      // Generate new QR code
+      console.log('📧 Generating new QR code for email');
+      qrResult = await QRCodeService.generateQRCode(prescriptionId);
+    }
 
     // Prepare email data
     const emailData = {

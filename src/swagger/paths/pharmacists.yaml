@@ -1,10 +1,10 @@
 paths:
-  /doctors/register:
+  /pharmacists/register:
     post:
       tags:
-        - Doctors
-      summary: Register a new doctor
-      description: Register a new doctor with complete professional information (Admin only)
+        - Pharmacists
+      summary: Register a new pharmacist
+      description: Register a new pharmacist with complete professional information (Admin only)
       security:
         - bearerAuth: []
       requestBody:
@@ -12,14 +12,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/DoctorRegistrationRequest"
+              $ref: "#/components/schemas/PharmacistRegistrationRequest"
       responses:
         201:
-          description: Doctor registered successfully
+          description: Pharmacist registered successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/DoctorRegistrationResponse"
+                $ref: "#/components/schemas/PharmacistRegistrationResponse"
         400:
           description: Bad request - validation error
           content:
@@ -39,21 +39,21 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
-  /doctors:
+  /pharmacists:
     get:
       tags:
-        - Doctors
-      summary: Get all doctors
-      description: Retrieve a list of all doctors in the system (Admin only)
+        - Pharmacists
+      summary: Get all pharmacists
+      description: Retrieve a list of all pharmacists in the system (Admin only)
       security:
         - bearerAuth: []
       responses:
         200:
-          description: List of doctors retrieved successfully
+          description: List of pharmacists retrieved successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/DoctorListResponse"
+                $ref: "#/components/schemas/PharmacistListResponse"
         401:
           description: Unauthorized - token required
           content:
@@ -67,29 +67,29 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
-  /doctors/{doctorId}:
+  /pharmacists/{pharmacistId}:
     get:
       tags:
-        - Doctors
-      summary: Get doctor by ID
-      description: Retrieve a specific doctor's information by ID (Admin only)
+        - Pharmacists
+      summary: Get pharmacist by ID
+      description: Retrieve a specific pharmacist's information by ID (Admin only)
       security:
         - bearerAuth: []
       parameters:
-        - name: doctorId
+        - name: pharmacistId
           in: path
           required: true
           schema:
             type: string
             format: uuid
-          description: Doctor ID
+          description: Pharmacist ID
       responses:
         200:
-          description: Doctor information retrieved successfully
+          description: Pharmacist information retrieved successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/DoctorDetailResponse"
+                $ref: "#/components/schemas/PharmacistDetailResponse"
         401:
           description: Unauthorized - token required
           content:
@@ -103,7 +103,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
         404:
-          description: Doctor not found
+          description: Pharmacist not found
           content:
             application/json:
               schema:
@@ -111,32 +111,32 @@ paths:
 
     put:
       tags:
-        - Doctors
-      summary: Update doctor profile
-      description: Update a doctor's professional information (Admin only)
+        - Pharmacists
+      summary: Update pharmacist profile
+      description: Update a pharmacist's professional information (Admin only)
       security:
         - bearerAuth: []
       parameters:
-        - name: doctorId
+        - name: pharmacistId
           in: path
           required: true
           schema:
             type: string
             format: uuid
-          description: Doctor ID
+          description: Pharmacist ID
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/DoctorUpdateRequest"
+              $ref: "#/components/schemas/PharmacistUpdateRequest"
       responses:
         200:
-          description: Doctor profile updated successfully
+          description: Pharmacist profile updated successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/DoctorUpdateResponse"
+                $ref: "#/components/schemas/PharmacistUpdateResponse"
         400:
           description: Bad request - validation error
           content:
@@ -156,7 +156,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
         404:
-          description: Doctor not found
+          description: Pharmacist not found
           content:
             application/json:
               schema:
@@ -164,22 +164,22 @@ paths:
 
     delete:
       tags:
-        - Doctors
-      summary: Delete doctor
-      description: Delete a doctor from the system (Admin only)
+        - Pharmacists
+      summary: Delete pharmacist
+      description: Delete a pharmacist from the system (Admin only)
       security:
         - bearerAuth: []
       parameters:
-        - name: doctorId
+        - name: pharmacistId
           in: path
           required: true
           schema:
             type: string
             format: uuid
-          description: Doctor ID
+          description: Pharmacist ID
       responses:
         200:
-          description: Doctor deleted successfully
+          description: Pharmacist deleted successfully
           content:
             application/json:
               schema:
@@ -190,7 +190,7 @@ paths:
                     example: true
                   message:
                     type: string
-                    example: Doctor deleted successfully
+                    example: Pharmacist deleted successfully
         401:
           description: Unauthorized - token required
           content:
@@ -204,7 +204,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
         404:
-          description: Doctor not found
+          description: Pharmacist not found
           content:
             application/json:
               schema:

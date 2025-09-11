@@ -11,6 +11,7 @@ export interface QRCodeAttributes {
   isUsed: boolean;
   scanCount: number;
   createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export type QRCodeCreationAttributes = Omit<QRCodeAttributes, 'id' | 'scanCount' | 'createdAt'>
@@ -24,6 +25,7 @@ class QRCode extends Model<QRCodeAttributes, QRCodeCreationAttributes> implement
   public isUsed!: boolean;
   public scanCount!: number;
   public readonly createdAt!: Date;
+  public readonly updatedAt!: Date;
 
   // Check if QR code is expired
   public isExpired (): boolean {

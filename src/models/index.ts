@@ -2,6 +2,7 @@
 import User from './User';
 import Patient from './Patient';
 import Doctor from './Doctor';
+import Pharmacist from './Pharmacist';
 import MedicalVisit from './MedicalVisit';
 import Prescription from './Prescription';
 import PrescriptionItem from './PrescriptionItem';
@@ -14,6 +15,7 @@ export {
   User,
   Patient,
   Doctor,
+  Pharmacist,
   MedicalVisit,
   Prescription,
   PrescriptionItem,
@@ -33,6 +35,7 @@ export default {
   User,
   Patient,
   Doctor,
+  Pharmacist,
   MedicalVisit,
   Prescription,
   PrescriptionItem,

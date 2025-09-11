@@ -147,4 +147,31 @@ export class DoctorService {
       throw error;
     }
   }
+
+  // Delete doctor profile
+  static async deleteDoctor(doctorId: string): Promise<boolean> {
+    try {
+      const doctor = await Doctor.findByPk(doctorId);
+      if (!doctor) {
+        return false;
+      }
+
+      // Get the associated user ID before deleting
+      const userId = doctor.userId;
+
+      // Delete the doctor profile
+      await doctor.destroy();
+
+      // Also deactivate the associated user account
+      await User.update(
+        { isActive: false },
+        { where: { id: userId } }
+      );
+
+      return true;
+    } catch (error) {
+      console.error('Error deleting doctor:', error);
+      throw error;
+    }
+  }
 }

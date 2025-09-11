@@ -12,3 +12,6 @@ export * from './patient';
 
 // Doctor types
 export * from './doctor';
+
+// Pharmacist types
+export * from './pharmacist';

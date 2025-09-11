@@ -211,4 +211,47 @@ export class DoctorController {
       });
     }
   }
+
+  // Delete doctor (admin only)
+  static async deleteDoctor(req: Request, res: Response) {
+    try {
+      const { doctorId } = req.params;
+
+      if (!doctorId) {
+        return res.status(400).json({
+          success: false,
+          error: {
+            message: 'Doctor ID is required',
+            statusCode: 400,
+          },
+        });
+      }
+
+      const deleted = await DoctorService.deleteDoctor(doctorId);
+
+      if (!deleted) {
+        return res.status(404).json({
+          success: false,
+          error: {
+            message: 'Doctor not found',
+            statusCode: 404,
+          },
+        });
+      }
+
+      res.status(200).json({
+        success: true,
+        message: 'Doctor deleted successfully',
+      });
+    } catch (error: any) {
+      console.error('Delete doctor error:', error);
+      res.status(500).json({
+        success: false,
+        error: {
+          message: error.message || 'Failed to delete doctor',
+          statusCode: 500,
+        },
+      });
+    }
+  }
 }
