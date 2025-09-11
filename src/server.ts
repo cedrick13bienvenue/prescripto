@@ -18,6 +18,9 @@ app.use(cors());
 app.use(express.json());
 app.use(sanitizeInput);
 
+// Serve static files from public directory
+app.use(express.static('public'));
+
 // Health check endpoint
 app.get('/health', (_req, res) => {
   res.status(200).json({
