@@ -30,6 +30,22 @@ if (process.env.NODE_ENV === "production") {
       cwd: path.join(__dirname, "..", ".."),
     });
     console.log("✅ Database migrations completed successfully");
+
+    // Seed admin user if it doesn't exist
+    console.log("👤 Checking for admin user...");
+    try {
+      execSync("npx sequelize-cli db:seed --seed 01-admin-user.js", {
+        stdio: "inherit",
+        cwd: path.join(__dirname, "..", ".."),
+      });
+      console.log("✅ Admin user seeded successfully");
+    } catch (seedError: any) {
+      if (seedError.message.includes("already exists") || seedError.message.includes("duplicate")) {
+        console.log("ℹ️  Admin user already exists, continuing...");
+      } else {
+        console.log("⚠️  Admin seeding failed, continuing startup...");
+      }
+    }
   } catch (error: any) {
     console.error("❌ Database setup failed:", error.message);
     console.log("⚠️  Continuing startup without database setup...");
