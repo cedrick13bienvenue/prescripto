@@ -6,8 +6,12 @@ import MedicalVisit from './MedicalVisit';
 
 export enum PrescriptionStatus {
   PENDING = 'pending',
-  FULFILLED = 'fulfilled',
-  CANCELLED = 'cancelled'
+  SCANNED = 'scanned',        // QR code has been scanned by pharmacist
+  VALIDATED = 'validated',    // Prescription has been validated by pharmacist
+  DISPENSED = 'dispensed',    // Prescription has been dispensed
+  REJECTED = 'rejected',      // Prescription was rejected by pharmacist
+  FULFILLED = 'fulfilled',    // Prescription is completely fulfilled
+  CANCELLED = 'cancelled'     // Prescription was cancelled
 }
 
 export interface PrescriptionAttributes {
