@@ -60,7 +60,7 @@ export class QRCodeService {
       const existingQR = await QRCodeModel.findOne({ where: { prescriptionId } });
       if (existingQR && !existingQR.isExpired()) {
         // Return existing QR code if still valid
-        const qrCodeImage = await this.generateQRCodeImage(existingQR.encryptedData);
+        const qrCodeImage = await this.generateQRCodeImage(existingQR.qrHash);
         return {
           qrCodeImage,
           qrHash: existingQR.qrHash,
@@ -114,8 +114,8 @@ export class QRCodeService {
         });
       }
 
-      // Generate QR code image
-      const qrCodeImage = await this.generateQRCodeImage(encryptedData);
+      // Generate QR code image with the hash (not encrypted data)
+      const qrCodeImage = await this.generateQRCodeImage(qrHash);
 
       return {
         qrCodeImage,
@@ -229,7 +229,7 @@ export class QRCodeService {
   /**
    * Generate QR code image from data
    */
-  private static async generateQRCodeImage(data: string): Promise<string> {
+  static async generateQRCodeImage(data: string): Promise<string> {
     try {
       const qrCodeDataURL = await QRCode.toDataURL(data, {
         width: 256,
