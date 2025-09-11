@@ -161,3 +161,51 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+
+    delete:
+      tags:
+        - Doctors
+      summary: Delete doctor
+      description: Delete a doctor from the system (Admin only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: doctorId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Doctor ID
+      responses:
+        200:
+          description: Doctor deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Doctor deleted successfully
+        401:
+          description: Unauthorized - token required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        403:
+          description: Forbidden - admin role required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        404:
+          description: Doctor not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
