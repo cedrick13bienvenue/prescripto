@@ -1,0 +1,240 @@
+components:
+  schemas:
+    QRCodeScanRequest:
+      type: object
+      required: [qrHash]
+      properties:
+        qrHash:
+          type: string
+          example: "abc123def456ghi789"
+          description: The QR code hash to scan
+
+    QRCodeScanResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Prescription validated successfully"
+        data:
+          type: object
+          properties:
+            prescription:
+              type: object
+              properties:
+                id:
+                  type: string
+                  format: uuid
+                  example: "123e4567-e89b-12d3-a456-426614174000"
+                prescriptionNumber:
+                  type: string
+                  example: "RX-20241201-1234"
+                patientName:
+                  type: string
+                  example: "John Doe"
+                doctorName:
+                  type: string
+                  example: "Dr. Smith"
+                diagnosis:
+                  type: string
+                  example: "Fever and bacterial infection"
+                doctorNotes:
+                  type: string
+                  example: "Take with food, complete full course"
+                status:
+                  type: string
+                  enum: [pending, scanned, validated, dispensed, rejected]
+                  example: "scanned"
+                items:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                        example: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                      medicineName:
+                        type: string
+                        example: "Paracetamol"
+                      dosage:
+                        type: string
+                        example: "500mg"
+                      frequency:
+                        type: string
+                        example: "3 times daily"
+                      quantity:
+                        type: integer
+                        example: 30
+                      instructions:
+                        type: string
+                        example: "Take with food"
+                createdAt:
+                  type: string
+                  format: date-time
+                  example: "2024-12-01T10:30:00.000Z"
+                qrCode:
+                  type: object
+                  properties:
+                    qrHash:
+                      type: string
+                      example: "abc123def456ghi789"
+                    isUsed:
+                      type: boolean
+                      example: false
+                    scanCount:
+                      type: integer
+                      example: 1
+                    expiresAt:
+                      type: string
+                      format: date-time
+                      example: "2024-12-08T10:30:00.000Z"
+            isValid:
+              type: boolean
+              example: true
+            canDispense:
+              type: boolean
+              example: true
+
+    PrescriptionValidationRequest:
+      type: object
+      properties:
+        notes:
+          type: string
+          example: "Prescription reviewed and approved"
+          description: Optional notes from pharmacist
+
+    PrescriptionDispenseRequest:
+      type: object
+      properties:
+        notes:
+          type: string
+          example: "Medication dispensed successfully"
+          description: Optional notes from pharmacist
+
+    PrescriptionRejectRequest:
+      type: object
+      required: [reason]
+      properties:
+        reason:
+          type: string
+          example: "Invalid prescription or expired medication"
+          description: Reason for rejection
+        notes:
+          type: string
+          example: "Additional details about rejection"
+          description: Optional additional notes
+
+    DispenseResult:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Prescription dispensed successfully"
+        data:
+          type: object
+          properties:
+            prescription:
+              type: object
+              properties:
+                id:
+                  type: string
+                  format: uuid
+                prescriptionNumber:
+                  type: string
+                status:
+                  type: string
+                  enum: [pending, scanned, validated, dispensed, rejected]
+                dispensedAt:
+                  type: string
+                  format: date-time
+                pharmacistNotes:
+                  type: string
+
+    PharmacyHistoryResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                format: uuid
+              prescriptionId:
+                type: string
+                format: uuid
+              prescriptionNumber:
+                type: string
+                example: "RX-20241201-1234"
+              patientName:
+                type: string
+                example: "John Doe"
+              doctorName:
+                type: string
+                example: "Dr. Smith"
+              action:
+                type: string
+                enum: [scanned, validated, dispensed, rejected]
+                example: "dispensed"
+              notes:
+                type: string
+                example: "Medication dispensed successfully"
+              actionTimestamp:
+                type: string
+                format: date-time
+                example: "2024-12-01T15:30:00.000Z"
+              createdAt:
+                type: string
+                format: date-time
+
+    PrescriptionLogsResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            logs:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                    example: "123e4567-e89b-12d3-a456-426614174000"
+                  prescriptionId:
+                    type: string
+                    format: uuid
+                    example: "123e4567-e89b-12d3-a456-426614174000"
+                  pharmacistId:
+                    type: string
+                    format: uuid
+                    example: "123e4567-e89b-12d3-a456-426614174000"
+                  action:
+                    type: string
+                    enum: [scanned, validated, dispensed, rejected]
+                    example: "dispensed"
+                  notes:
+                    type: string
+                    example: "Medication dispensed successfully"
+                  actionTimestamp:
+                    type: string
+                    format: date-time
+                    example: "2024-12-01T15:30:00.000Z"
+                  createdAt:
+                    type: string
+                    format: date-time
+                    example: "2024-12-01T15:30:00.000Z"
