@@ -23,6 +23,13 @@ const dbConfig = {
     underscored: true,
     freezeTableName: true,
   },
+  // Add SSL configuration for production
+  dialectOptions: process.env['NODE_ENV'] === 'production' ? {
+    ssl: {
+      require: true,
+      rejectUnauthorized: false,
+    },
+  } : {},
 };
 
 // Create Sequelize instance
@@ -37,6 +44,7 @@ export const sequelize = new Sequelize(
     logging: dbConfig.logging,
     pool: dbConfig.pool,
     define: dbConfig.define,
+    dialectOptions: dbConfig.dialectOptions,
   },
 );
 

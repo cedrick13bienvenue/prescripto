@@ -27,6 +27,13 @@ const dbConfig = {
         underscored: true,
         freezeTableName: true,
     },
+    // Add SSL configuration for production
+    dialectOptions: process.env['NODE_ENV'] === 'production' ? {
+        ssl: {
+            require: true,
+            rejectUnauthorized: false,
+        },
+    } : {},
 };
 // Create Sequelize instance
 exports.sequelize = new sequelize_1.Sequelize(dbConfig.database, dbConfig.username, dbConfig.password, {
@@ -36,6 +43,7 @@ exports.sequelize = new sequelize_1.Sequelize(dbConfig.database, dbConfig.userna
     logging: dbConfig.logging,
     pool: dbConfig.pool,
     define: dbConfig.define,
+    dialectOptions: dbConfig.dialectOptions,
 });
 // Test database connection
 const connectDatabase = async () => {
