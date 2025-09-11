@@ -1,5 +1,5 @@
-const { execSync } = require("child_process");
-const path = require("path");
+import { execSync } from "child_process";
+import * as path from "path";
 
 console.log("📊 Running database migrations...");
 
@@ -9,7 +9,7 @@ try {
     cwd: path.join(__dirname, "..", ".."),
   });
   console.log("✅ Database migrations completed successfully");
-} catch (error) {
+} catch (error: any) {
   console.error("❌ Database migration failed:", error.message);
   process.exit(1);
 }
