@@ -359,4 +359,51 @@ export class PharmacyController {
       });
     }
   }
+
+  /**
+   * Get dispensing history for a prescription
+   */
+  static async getDispensingHistory(req: Request, res: Response): Promise<void> {
+    try {
+      const { prescriptionId } = req.params;
+      const history = await PharmacyService.getDispensingHistory(prescriptionId);
+
+      res.status(200).json({
+        success: true,
+        message: "Dispensing history retrieved successfully",
+        data: history,
+      });
+    } catch (error: any) {
+      console.error("Error getting dispensing history:", error);
+      res.status(500).json({
+        success: false,
+        message: "Internal server error",
+        error: error.message,
+      });
+    }
+  }
+
+  /**
+   * Get dispensing summary for a prescription
+   */
+  static async getDispensingSummary(req: Request, res: Response): Promise<void> {
+    try {
+      const { prescriptionId } = req.params;
+      const summary = await PharmacyService.getDispensingSummary(prescriptionId);
+
+      res.status(200).json({
+        success: true,
+        message: "Dispensing summary retrieved successfully",
+        data: summary,
+      });
+    } catch (error: any) {
+      console.error("Error getting dispensing summary:", error);
+      res.status(500).json({
+        success: false,
+        message: "Internal server error",
+        error: error.message,
+      });
+    }
+  }
+
 }
