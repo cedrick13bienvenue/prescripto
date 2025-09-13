@@ -15,4 +15,8 @@ router.get('/pharmacy/logs/:prescriptionId', authenticateToken, requirePharmacis
 router.get('/pharmacy/history', authenticateToken, requirePharmacist, PharmacyController.getPharmacistHistory);
 router.get('/pharmacy/scan-status/:qrHash', authenticateToken, requirePharmacist, PharmacyController.checkScanStatus);
 
+// Enhanced dispensing routes
+router.get('/pharmacy/dispensing-history/:prescriptionId', authenticateToken, requirePharmacist, validateParams(prescriptionIdParamSchema), PharmacyController.getDispensingHistory);
+router.get('/pharmacy/dispensing-summary/:prescriptionId', authenticateToken, requirePharmacist, validateParams(prescriptionIdParamSchema), PharmacyController.getDispensingSummary);
+
 export default router;
