@@ -194,7 +194,22 @@ export class PharmacyService {
   /**
    * Dispense prescription (pharmacist gives medicine to patient)
    */
-  static async dispensePrescription(prescriptionId: string, pharmacistId: string, notes?: string): Promise<DispenseResult> {
+  static async dispensePrescription(
+    prescriptionId: string, 
+    pharmacistId: string, 
+    dispensingData?: {
+      notes?: string;
+      dispensingItems?: Array<{
+        prescriptionItemId: string;
+        dispensedQuantity: number;
+        unitPrice: number;
+        batchNumber: string;
+        expiryDate: Date;
+      }>;
+      insuranceProvider?: string;
+      insuranceNumber?: string;
+    }
+  ): Promise<DispenseResult> {
     try {
       const prescription = await Prescription.findByPk(prescriptionId, {
         include: [
@@ -219,6 +234,45 @@ export class PharmacyService {
         };
       }
 
+      // Process dispensing items if provided
+      let totalAmount = 0;
+      let insuranceCoverage = 0;
+      let patientPayment = 0;
+
+      if (dispensingData?.dispensingItems) {
+        for (const item of dispensingData.dispensingItems) {
+          const prescriptionItem = (prescription as any).items.find((pi: any) => pi.id === item.prescriptionItemId);
+          if (prescriptionItem) {
+            // Update prescription item with dispensing details
+            await prescriptionItem.update({
+              dispensedQuantity: item.dispensedQuantity,
+              unitPrice: item.unitPrice,
+              batchNumber: item.batchNumber,
+              expiryDate: item.expiryDate,
+              isDispensed: true
+            });
+
+            totalAmount += item.dispensedQuantity * item.unitPrice;
+          }
+        }
+
+        // Calculate insurance coverage if provided
+        if (dispensingData.insuranceProvider && dispensingData.insuranceNumber) {
+          const patient = (prescription as any).patient;
+          if (patient.insuranceProvider === dispensingData.insuranceProvider && 
+              patient.insuranceNumber === dispensingData.insuranceNumber) {
+            // Simulate insurance coverage calculation
+            const coveragePercentage = this.getInsuranceCoveragePercentage(dispensingData.insuranceProvider);
+            insuranceCoverage = totalAmount * (coveragePercentage / 100);
+            patientPayment = totalAmount - insuranceCoverage;
+          } else {
+            patientPayment = totalAmount;
+          }
+        } else {
+          patientPayment = totalAmount;
+        }
+      }
+
       // Update prescription status
       await prescription.update({ status: PrescriptionStatus.DISPENSED });
 
@@ -229,12 +283,26 @@ export class PharmacyService {
         await qrCode.save();
       }
 
-      // Log the dispensing action
+      // Log the dispensing action with detailed information
+      await this.logPharmacyAction({
+        prescriptionId: prescription.id,
+        pharmacistId,
+        action: PharmacyAction.DISPENSED,
+        notes: dispensingData?.notes || 'Prescription dispensed to patient',
+        totalAmount,
+        insuranceCoverage,
+        patientPayment,
+        insuranceProvider: dispensingData?.insuranceProvider,
+        insuranceNumber: dispensingData?.insuranceNumber,
+        insuranceApprovalCode: insuranceCoverage > 0 ? this.generateApprovalCode() : undefined
+      });
+
+      // Log fulfillment action
       await this.logPharmacyAction({
         prescriptionId: prescription.id,
         pharmacistId,
         action: PharmacyAction.FULFILLED,
-        notes: notes || 'Prescription dispensed to patient'
+        notes: 'Prescription completely fulfilled'
       });
 
       return {
@@ -245,7 +313,10 @@ export class PharmacyService {
           prescriptionNumber: prescription.prescriptionNumber,
           status: prescription.status,
           patientName: (prescription as any).patient?.user?.fullName || '',
-          doctorName: (prescription as any).doctor?.user?.fullName || ''
+          doctorName: (prescription as any).doctor?.user?.fullName || '',
+          totalAmount,
+          insuranceCoverage,
+          patientPayment
         }
       };
     } catch (error: any) {
@@ -442,16 +513,131 @@ export class PharmacyService {
   /**
    * Log pharmacy action
    */
-  private static async logPharmacyAction(data: PharmacyLogEntry): Promise<void> {
+  private static async logPharmacyAction(data: PharmacyLogEntry & {
+    totalAmount?: number;
+    insuranceCoverage?: number;
+    patientPayment?: number;
+    insuranceProvider?: string;
+    insuranceNumber?: string;
+    insuranceApprovalCode?: string;
+  }): Promise<void> {
     try {
       await PharmacyLog.create({
         prescriptionId: data.prescriptionId,
         pharmacistId: data.pharmacistId,
         action: data.action,
-        notes: data.notes
+        notes: data.notes,
+        totalAmount: data.totalAmount,
+        insuranceCoverage: data.insuranceCoverage,
+        patientPayment: data.patientPayment,
+        insuranceProvider: data.insuranceProvider,
+        insuranceNumber: data.insuranceNumber,
+        insuranceApprovalCode: data.insuranceApprovalCode
       });
     } catch (error: any) {
       console.error('Error logging pharmacy action:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get insurance coverage percentage based on provider
+   */
+  private static getInsuranceCoveragePercentage(provider: string): number {
+    const coverageMap: { [key: string]: number } = {
+      'Blue Cross': 80,
+      'Aetna': 75,
+      'Cigna': 70,
+      'UnitedHealth': 85,
+      'Medicare': 90,
+      'Medicaid': 95
+    };
+    
+    return coverageMap[provider] || 60; // Default 60% coverage
+  }
+
+  /**
+   * Generate insurance approval code
+   */
+  private static generateApprovalCode(): string {
+    return `APP-${Date.now()}-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
+  }
+
+  /**
+   * Get dispensing history for a prescription
+   */
+  static async getDispensingHistory(prescriptionId: string) {
+    try {
+      return await PharmacyLog.findAll({
+        where: { 
+          prescriptionId,
+          action: [PharmacyAction.DISPENSED, PharmacyAction.FULFILLED]
+        },
+        include: [
+          { association: 'pharmacist' },
+          { association: 'prescription', include: [
+            { association: 'patient', include: [{ association: 'user' }] },
+            { association: 'doctor', include: [{ association: 'user' }] }
+          ]}
+        ],
+        order: [['actionTimestamp', 'DESC']]
+      });
+    } catch (error: any) {
+      console.error('Error getting dispensing history:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get dispensing summary for a prescription
+   */
+  static async getDispensingSummary(prescriptionId: string) {
+    try {
+      // First get the prescription with items
+      const prescription = await Prescription.findByPk(prescriptionId, {
+        include: [
+          { association: 'items' }
+        ]
+      });
+
+      if (!prescription) {
+        throw new Error(`Prescription with ID ${prescriptionId} not found`);
+      }
+
+      // Then get the dispensing log separately
+      const dispensingLog = await PharmacyLog.findOne({
+        where: { 
+          prescriptionId,
+          action: PharmacyAction.DISPENSED 
+        },
+        include: [{ association: 'pharmacist' }]
+      });
+
+      const dispensedItems = (prescription as any).items.filter((item: any) => item.isDispensed);
+      const totalAmount = dispensedItems.reduce((sum: number, item: any) => 
+        sum + (item.dispensedQuantity || 0) * (item.unitPrice || 0), 0
+      );
+
+      const insuranceCoverage = dispensingLog?.insuranceCoverage || 0;
+      const patientPayment = dispensingLog?.patientPayment || totalAmount;
+
+      return {
+        prescriptionId,
+        totalAmount,
+        insuranceCoverage,
+        patientPayment,
+        dispensedItems: dispensedItems.map((item: any) => ({
+          medicineName: item.medicineName,
+          dispensedQuantity: item.dispensedQuantity,
+          unitPrice: item.unitPrice,
+          batchNumber: item.batchNumber,
+          expiryDate: item.expiryDate
+        })),
+        dispensingDate: dispensingLog?.actionTimestamp,
+        pharmacist: (dispensingLog as any)?.pharmacist
+      };
+    } catch (error: any) {
+      console.error('Error getting dispensing summary:', error);
       throw error;
     }
   }
