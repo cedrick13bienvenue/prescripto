@@ -113,6 +113,56 @@ components:
           type: string
           example: "Medication dispensed successfully"
           description: Optional notes from pharmacist
+        dispensingItems:
+          type: array
+          description: Array of items being dispensed with inventory details
+          items:
+            type: object
+            required:
+              [
+                prescriptionItemId,
+                dispensedQuantity,
+                unitPrice,
+                batchNumber,
+                expiryDate,
+              ]
+            properties:
+              prescriptionItemId:
+                type: string
+                format: uuid
+                example: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                description: ID of the prescription item
+              dispensedQuantity:
+                type: integer
+                minimum: 1
+                example: 30
+                description: Actual quantity dispensed
+              unitPrice:
+                type: number
+                format: decimal
+                example: 15.50
+                description: Price per unit
+              batchNumber:
+                type: string
+                example: "BATCH-2024-001"
+                description: Medicine batch number
+              expiryDate:
+                type: string
+                format: date
+                example: "2025-12-31"
+                description: Medicine expiry date
+              dispensingNotes:
+                type: string
+                example: "Store in cool, dry place"
+                description: Optional notes for this specific item
+        insuranceProvider:
+          type: string
+          example: "Blue Cross"
+          description: Patient's insurance provider
+        insuranceNumber:
+          type: string
+          example: "BC123456789"
+          description: Patient's insurance number
 
     PrescriptionRejectRequest:
       type: object
@@ -150,11 +200,27 @@ components:
                 status:
                   type: string
                   enum: [pending, scanned, validated, dispensed, rejected]
-                dispensedAt:
+                patientName:
                   type: string
-                  format: date-time
-                pharmacistNotes:
+                  example: "John Doe"
+                doctorName:
                   type: string
+                  example: "Dr. Smith"
+                totalAmount:
+                  type: number
+                  format: decimal
+                  example: 465.00
+                  description: Total amount for all dispensed items
+                insuranceCoverage:
+                  type: number
+                  format: decimal
+                  example: 372.00
+                  description: Amount covered by insurance
+                patientPayment:
+                  type: number
+                  format: decimal
+                  example: 93.00
+                  description: Amount patient needs to pay
 
     PharmacyHistoryResponse:
       type: object
@@ -238,3 +304,181 @@ components:
                     type: string
                     format: date-time
                     example: "2024-12-01T15:30:00.000Z"
+
+    PharmacyLog:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        prescriptionId:
+          type: string
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        pharmacistId:
+          type: string
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        action:
+          type: string
+          enum: [scanned, validated, dispensed, fulfilled]
+          example: "dispensed"
+        notes:
+          type: string
+          example: "Prescription dispensed with insurance coverage"
+        actionTimestamp:
+          type: string
+          format: date-time
+          example: "2024-12-01T15:30:00.000Z"
+        # Dispensing details (only present for dispensed actions)
+        dispensedQuantity:
+          type: integer
+          example: 30
+          description: Quantity dispensed
+        unitPrice:
+          type: number
+          format: decimal
+          example: 15.50
+          description: Price per unit
+        totalAmount:
+          type: number
+          format: decimal
+          example: 465.00
+          description: Total amount for all items
+        insuranceCoverage:
+          type: number
+          format: decimal
+          example: 372.00
+          description: Amount covered by insurance
+        patientPayment:
+          type: number
+          format: decimal
+          example: 93.00
+          description: Amount patient needs to pay
+        insuranceProvider:
+          type: string
+          example: "Blue Cross"
+          description: Insurance provider
+        insuranceNumber:
+          type: string
+          example: "BC123456789"
+          description: Insurance number
+        insuranceApprovalCode:
+          type: string
+          example: "APP-1701435000000-ABC123"
+          description: Insurance approval code
+        batchNumber:
+          type: string
+          example: "BATCH-2024-001"
+          description: Medicine batch number
+        expiryDate:
+          type: string
+          format: date
+          example: "2025-12-31"
+          description: Medicine expiry date
+        pharmacist:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            user:
+              type: object
+              properties:
+                fullName:
+                  type: string
+                  example: "Dr. Jane Pharmacist"
+                email:
+                  type: string
+                  example: "jane.pharmacist@pharmacy.com"
+        prescription:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            prescriptionNumber:
+              type: string
+              example: "RX-20241201-1234"
+            patient:
+              type: object
+              properties:
+                fullName:
+                  type: string
+                  example: "John Doe"
+            doctor:
+              type: object
+              properties:
+                user:
+                  type: object
+                  properties:
+                    fullName:
+                      type: string
+                      example: "Dr. Smith"
+
+    DispensingSummary:
+      type: object
+      properties:
+        prescriptionId:
+          type: string
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        totalAmount:
+          type: number
+          format: decimal
+          example: 465.00
+          description: Total amount for all dispensed items
+        insuranceCoverage:
+          type: number
+          format: decimal
+          example: 372.00
+          description: Amount covered by insurance
+        patientPayment:
+          type: number
+          format: decimal
+          example: 93.00
+          description: Amount patient needs to pay
+        dispensedItems:
+          type: array
+          description: List of dispensed items with inventory details
+          items:
+            type: object
+            properties:
+              medicineName:
+                type: string
+                example: "Paracetamol"
+              dispensedQuantity:
+                type: integer
+                example: 30
+              unitPrice:
+                type: number
+                format: decimal
+                example: 15.50
+              batchNumber:
+                type: string
+                example: "BATCH-2024-001"
+              expiryDate:
+                type: string
+                format: date
+                example: "2025-12-31"
+        dispensingDate:
+          type: string
+          format: date-time
+          example: "2024-12-01T15:30:00.000Z"
+          description: Date and time when prescription was dispensed
+        pharmacist:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            user:
+              type: object
+              properties:
+                fullName:
+                  type: string
+                  example: "Dr. Jane Pharmacist"
+                email:
+                  type: string
+                  example: "jane.pharmacist@pharmacy.com"
