@@ -6,6 +6,7 @@ import User from './User';
 export enum PharmacyAction {
   SCANNED = 'scanned',
   VALIDATED = 'validated',
+  DISPENSED = 'dispensed',
   FULFILLED = 'fulfilled'
 }
 
@@ -16,6 +17,17 @@ export interface PharmacyLogAttributes {
   action: PharmacyAction;
   notes?: string;
   actionTimestamp: Date;
+  // Dispensing details
+  dispensedQuantity?: number;
+  unitPrice?: number;
+  totalAmount?: number;
+  insuranceCoverage?: number;
+  patientPayment?: number;
+  insuranceProvider?: string;
+  insuranceNumber?: string;
+  insuranceApprovalCode?: string;
+  batchNumber?: string;
+  expiryDate?: Date;
   createdAt?: Date;
 }
 
@@ -28,6 +40,17 @@ class PharmacyLog extends Model<PharmacyLogAttributes, PharmacyLogCreationAttrib
   public action!: PharmacyAction;
   public notes!: string;
   public actionTimestamp!: Date;
+  // Dispensing details
+  public dispensedQuantity!: number;
+  public unitPrice!: number;
+  public totalAmount!: number;
+  public insuranceCoverage!: number;
+  public patientPayment!: number;
+  public insuranceProvider!: string;
+  public insuranceNumber!: string;
+  public insuranceApprovalCode!: string;
+  public batchNumber!: string;
+  public expiryDate!: Date;
   public readonly createdAt!: Date;
 }
 
@@ -66,6 +89,47 @@ PharmacyLog.init(
       type: DataTypes.DATE,
       allowNull: false,
       defaultValue: DataTypes.NOW,
+    },
+    // Dispensing details
+    dispensedQuantity: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    unitPrice: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: true,
+    },
+    totalAmount: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: true,
+    },
+    insuranceCoverage: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: true,
+    },
+    patientPayment: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: true,
+    },
+    insuranceProvider: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    insuranceNumber: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    insuranceApprovalCode: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    batchNumber: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    expiryDate: {
+      type: DataTypes.DATEONLY,
+      allowNull: true,
     },
   },
   {
