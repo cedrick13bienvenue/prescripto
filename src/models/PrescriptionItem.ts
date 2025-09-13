@@ -10,6 +10,12 @@ export interface PrescriptionItemAttributes {
   frequency: string;
   quantity: number;
   instructions: string;
+  // Inventory tracking
+  dispensedQuantity?: number;
+  unitPrice?: number;
+  batchNumber?: string;
+  expiryDate?: Date;
+  isDispensed?: boolean;
   createdAt?: Date;
 }
 
@@ -23,6 +29,12 @@ class PrescriptionItem extends Model<PrescriptionItemAttributes, PrescriptionIte
   public frequency!: string;
   public quantity!: number;
   public instructions!: string;
+  // Inventory tracking
+  public dispensedQuantity!: number;
+  public unitPrice!: number;
+  public batchNumber!: string;
+  public expiryDate!: Date;
+  public isDispensed!: boolean;
   public readonly createdAt!: Date;
 }
 
@@ -60,6 +72,29 @@ PrescriptionItem.init(
     instructions: {
       type: DataTypes.TEXT,
       allowNull: false,
+    },
+    // Inventory tracking
+    dispensedQuantity: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      defaultValue: 0,
+    },
+    unitPrice: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: true,
+    },
+    batchNumber: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    expiryDate: {
+      type: DataTypes.DATEONLY,
+      allowNull: true,
+    },
+    isDispensed: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
     },
   },
   {
