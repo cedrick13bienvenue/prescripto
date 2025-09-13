@@ -375,3 +375,107 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+
+  /pharmacy/dispensing-history/{prescriptionId}:
+    get:
+      tags:
+        - Pharmacy Operations
+      summary: Get dispensing history
+      description: Get complete dispensing history for a prescription including inventory and financial details (Pharmacist only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: prescriptionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Prescription ID
+      responses:
+        200:
+          description: Dispensing history retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Dispensing history retrieved successfully"
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/PharmacyLog"
+        401:
+          description: Unauthorized - token required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        403:
+          description: Forbidden - pharmacist role required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        404:
+          description: Prescription not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /pharmacy/dispensing-summary/{prescriptionId}:
+    get:
+      tags:
+        - Pharmacy Operations
+      summary: Get dispensing summary
+      description: Get financial and inventory summary for a dispensed prescription (Pharmacist only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: prescriptionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Prescription ID
+      responses:
+        200:
+          description: Dispensing summary retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Dispensing summary retrieved successfully"
+                  data:
+                    $ref: "#/components/schemas/DispensingSummary"
+        401:
+          description: Unauthorized - token required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        403:
+          description: Forbidden - pharmacist role required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        404:
+          description: Prescription not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
