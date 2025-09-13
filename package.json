@@ -5,6 +5,7 @@
   "main": "dist/server.js",
   "scripts": {
     "start": "node dist/scripts/startup.js",
+    "deploy": "npm run build && npm run db:migrate && npm start",
     "dev": "nodemon src/server.ts",
     "build": "tsc --project tsconfig.prod.json && npm run copy-swagger-files",
     "build:dev": "tsc",

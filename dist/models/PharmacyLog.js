@@ -12,6 +12,7 @@ var PharmacyAction;
 (function (PharmacyAction) {
     PharmacyAction["SCANNED"] = "scanned";
     PharmacyAction["VALIDATED"] = "validated";
+    PharmacyAction["DISPENSED"] = "dispensed";
     PharmacyAction["FULFILLED"] = "fulfilled";
 })(PharmacyAction || (exports.PharmacyAction = PharmacyAction = {}));
 class PharmacyLog extends sequelize_1.Model {
@@ -50,6 +51,47 @@ PharmacyLog.init({
         type: sequelize_1.DataTypes.DATE,
         allowNull: false,
         defaultValue: sequelize_1.DataTypes.NOW,
+    },
+    // Dispensing details
+    dispensedQuantity: {
+        type: sequelize_1.DataTypes.INTEGER,
+        allowNull: true,
+    },
+    unitPrice: {
+        type: sequelize_1.DataTypes.DECIMAL(10, 2),
+        allowNull: true,
+    },
+    totalAmount: {
+        type: sequelize_1.DataTypes.DECIMAL(10, 2),
+        allowNull: true,
+    },
+    insuranceCoverage: {
+        type: sequelize_1.DataTypes.DECIMAL(10, 2),
+        allowNull: true,
+    },
+    patientPayment: {
+        type: sequelize_1.DataTypes.DECIMAL(10, 2),
+        allowNull: true,
+    },
+    insuranceProvider: {
+        type: sequelize_1.DataTypes.STRING,
+        allowNull: true,
+    },
+    insuranceNumber: {
+        type: sequelize_1.DataTypes.STRING,
+        allowNull: true,
+    },
+    insuranceApprovalCode: {
+        type: sequelize_1.DataTypes.STRING,
+        allowNull: true,
+    },
+    batchNumber: {
+        type: sequelize_1.DataTypes.STRING,
+        allowNull: true,
+    },
+    expiryDate: {
+        type: sequelize_1.DataTypes.DATEONLY,
+        allowNull: true,
     },
 }, {
     sequelize: database_1.sequelize,

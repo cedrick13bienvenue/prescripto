@@ -14,4 +14,7 @@ router.post('/pharmacy/reject/:prescriptionId', auth_1.authenticateToken, auth_1
 router.get('/pharmacy/logs/:prescriptionId', auth_1.authenticateToken, auth_1.requirePharmacist, (0, validation_1.validateParams)(schemas_1.prescriptionIdParamSchema), pharmacyController_1.PharmacyController.getPrescriptionLogs);
 router.get('/pharmacy/history', auth_1.authenticateToken, auth_1.requirePharmacist, pharmacyController_1.PharmacyController.getPharmacistHistory);
 router.get('/pharmacy/scan-status/:qrHash', auth_1.authenticateToken, auth_1.requirePharmacist, pharmacyController_1.PharmacyController.checkScanStatus);
+// Enhanced dispensing routes
+router.get('/pharmacy/dispensing-history/:prescriptionId', auth_1.authenticateToken, auth_1.requirePharmacist, (0, validation_1.validateParams)(schemas_1.prescriptionIdParamSchema), pharmacyController_1.PharmacyController.getDispensingHistory);
+router.get('/pharmacy/dispensing-summary/:prescriptionId', auth_1.authenticateToken, auth_1.requirePharmacist, (0, validation_1.validateParams)(schemas_1.prescriptionIdParamSchema), pharmacyController_1.PharmacyController.getDispensingSummary);
 exports.default = router;

@@ -42,6 +42,29 @@ PrescriptionItem.init({
         type: sequelize_1.DataTypes.TEXT,
         allowNull: false,
     },
+    // Inventory tracking
+    dispensedQuantity: {
+        type: sequelize_1.DataTypes.INTEGER,
+        allowNull: true,
+        defaultValue: 0,
+    },
+    unitPrice: {
+        type: sequelize_1.DataTypes.DECIMAL(10, 2),
+        allowNull: true,
+    },
+    batchNumber: {
+        type: sequelize_1.DataTypes.STRING,
+        allowNull: true,
+    },
+    expiryDate: {
+        type: sequelize_1.DataTypes.DATEONLY,
+        allowNull: true,
+    },
+    isDispensed: {
+        type: sequelize_1.DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+    },
 }, {
     sequelize: database_1.sequelize,
     tableName: 'prescription_items',
