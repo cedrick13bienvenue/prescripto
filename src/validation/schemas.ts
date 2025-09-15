@@ -155,7 +155,8 @@ export const medicalHistoryPaginationSchema = Joi.object({
   limit: Joi.number().min(1).max(50).default(10),
   type: Joi.string().valid('visits', 'prescriptions', 'all').default('all'),
   sortBy: Joi.string().valid('createdAt', 'visitDate', 'prescriptionNumber').default('createdAt'),
-  sortOrder: Joi.string().valid('ASC', 'DESC').default('DESC')
+  sortOrder: Joi.string().valid('ASC', 'DESC').default('DESC'),
+  otpCode: Joi.string().length(6).pattern(/^\d{6}$/).optional()
 });
 
 // User ID Parameter Schema
@@ -192,6 +193,11 @@ export const referenceNumberParamSchema = Joi.object({
 export const emailTestSchema = Joi.object({
   email: emailPattern,
   name: Joi.string().min(2).max(100).trim().required()
+});
+
+// OTP Verification Schema
+export const otpVerificationSchema = Joi.object({
+  otpCode: Joi.string().length(6).pattern(/^\d{6}$/).required()
 });
 
 // Custom validation messages
