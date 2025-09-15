@@ -375,11 +375,11 @@ paths:
                 $ref: "#/components/schemas/Error"
 
   /patients/{patientId}/history:
-    post:
+    get:
       tags:
         - Patients
       summary: Get patient medical history
-      description: Retrieve complete medical history including visits and prescriptions. Patients must provide OTP code in request body.
+      description: Retrieve complete medical history including visits and prescriptions. Patients must provide OTP code as query parameter.
       security:
         - bearerAuth: []
       parameters:
@@ -390,53 +390,49 @@ paths:
             type: string
             format: uuid
           description: Patient ID
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - otpCode
-              properties:
-                page:
-                  type: integer
-                  minimum: 1
-                  default: 1
-                  description: Page number for pagination
-                limit:
-                  type: integer
-                  minimum: 1
-                  maximum: 100
-                  default: 10
-                  description: Number of items per page (max 100)
-                type:
-                  type: string
-                  enum: ["visits", "prescriptions", "all"]
-                  default: "all"
-                  description: Type of medical history to retrieve
-                sortBy:
-                  type: string
-                  enum: ["createdAt", "updatedAt", "date"]
-                  default: "createdAt"
-                  description: Field to sort by
-                sortOrder:
-                  type: string
-                  enum: ["ASC", "DESC"]
-                  default: "DESC"
-                  description: Sort order
-                otpCode:
-                  type: string
-                  pattern: '^\d{6}$'
-                  example: "123456"
-                  description: 6-digit OTP code required for patient role users
-            example:
-              page: 1
-              limit: 10
-              type: "all"
-              sortBy: "createdAt"
-              sortOrder: "DESC"
-              otpCode: "123456"
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: Page number for pagination
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+          description: Number of items per page (max 100)
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: ["visits", "prescriptions", "all"]
+            default: "all"
+          description: Type of medical history to retrieve
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+            enum: ["createdAt", "updatedAt", "date"]
+            default: "createdAt"
+          description: Field to sort by
+        - name: sortOrder
+          in: query
+          schema:
+            type: string
+            enum: ["ASC", "DESC"]
+            default: "DESC"
+          description: Sort order
+        - name: otpCode
+          in: query
+          schema:
+            type: string
+            pattern: '^\d{6}$'
+            example: "123456"
+          description: 6-digit OTP code required for patient role users
       responses:
         200:
           description: Medical history retrieved successfully

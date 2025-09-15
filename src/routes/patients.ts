@@ -33,8 +33,8 @@ router.put('/patients/:patientId', authenticateToken, requireRole([UserRole.ADMI
 // OTP generation route for patients
 router.post('/patients/:patientId/otp', authenticateToken, requireRole([UserRole.PATIENT]), validateParams(patientIdParamSchema), generateOTPForPatient);
 
-// Medical history route with OTP verification (POST method for better UX)
-router.post('/patients/:patientId/history', authenticateToken, requireRole([UserRole.DOCTOR, UserRole.ADMIN, UserRole.PATIENT]), validateParams(patientIdParamSchema), validateBody(medicalHistoryWithOTPSchema), requireOTPVerification, PatientController.getPatientMedicalHistory);
+// Medical history route with OTP verification
+router.get('/patients/:patientId/history', authenticateToken, requireRole([UserRole.DOCTOR, UserRole.ADMIN, UserRole.PATIENT]), validateParams(patientIdParamSchema), validateQuery(medicalHistoryPaginationSchema), requireOTPVerification, PatientController.getPatientMedicalHistory);
 
 // Doctor and Admin only routes
 router.post('/patients/:patientId/visits', authenticateToken, requireRole([UserRole.DOCTOR, UserRole.ADMIN]), validateParams(patientIdParamSchema), validateBody(medicalVisitSchema), PatientController.createMedicalVisit);
