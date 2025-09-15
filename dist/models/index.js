@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.PharmacyAction = exports.PrescriptionStatus = exports.VisitType = exports.UserRole = exports.TokenBlacklist = exports.PharmacyLog = exports.QRCode = exports.PrescriptionItem = exports.Prescription = exports.MedicalVisit = exports.Pharmacist = exports.Doctor = exports.Patient = exports.User = void 0;
+exports.PharmacyAction = exports.PrescriptionStatus = exports.VisitType = exports.UserRole = exports.OTPVerification = exports.TokenBlacklist = exports.PharmacyLog = exports.QRCode = exports.PrescriptionItem = exports.Prescription = exports.MedicalVisit = exports.Pharmacist = exports.Doctor = exports.Patient = exports.User = void 0;
 // Import all models
 const User_1 = __importDefault(require("./User"));
 exports.User = User_1.default;
@@ -25,6 +25,8 @@ const PharmacyLog_1 = __importDefault(require("./PharmacyLog"));
 exports.PharmacyLog = PharmacyLog_1.default;
 const TokenBlacklist_1 = __importDefault(require("./TokenBlacklist"));
 exports.TokenBlacklist = TokenBlacklist_1.default;
+const OTPVerification_1 = __importDefault(require("./OTPVerification"));
+exports.OTPVerification = OTPVerification_1.default;
 // Export enums and types
 var User_2 = require("./User");
 Object.defineProperty(exports, "UserRole", { enumerable: true, get: function () { return User_2.UserRole; } });
@@ -46,4 +48,5 @@ exports.default = {
     QRCode: QRCode_1.default,
     PharmacyLog: PharmacyLog_1.default,
     TokenBlacklist: TokenBlacklist_1.default,
+    OTPVerification: OTPVerification_1.default,
 };
