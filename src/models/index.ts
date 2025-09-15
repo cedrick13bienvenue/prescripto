@@ -9,6 +9,7 @@ import PrescriptionItem from './PrescriptionItem';
 import QRCode from './QRCode';
 import PharmacyLog from './PharmacyLog';
 import TokenBlacklist from './TokenBlacklist';
+import OTPVerification from './OTPVerification';
 
 // Export all models
 export {
@@ -22,6 +23,7 @@ export {
   QRCode,
   PharmacyLog,
   TokenBlacklist,
+  OTPVerification,
 };
 
 // Export enums and types
@@ -42,4 +44,5 @@ export default {
   QRCode,
   PharmacyLog,
   TokenBlacklist,
+  OTPVerification,
 };
