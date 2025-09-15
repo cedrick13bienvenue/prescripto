@@ -5,6 +5,7 @@ import {
   requireRole,
   requireDoctor
 } from '../middleware/auth';
+import { requireOTPVerification, generateOTPForPatient } from '../middleware/otpVerification';
 import { User, UserRole } from '../models';
 import { validateBody, validateQuery, validateParams } from '../middleware/validation';
 import { 
@@ -17,7 +18,8 @@ import {
   medicalHistoryPaginationSchema,
   advancedPaginationSchema,
   patientIdParamSchema,
-  referenceNumberParamSchema
+  referenceNumberParamSchema,
+  otpVerificationSchema
 } from '../validation/schemas';
 
 const router = Router();
@@ -27,7 +29,11 @@ router.post('/patients/register', authenticateToken, requireRole([UserRole.ADMIN
 router.get('/patients/search', authenticateToken, requireRole([UserRole.ADMIN, UserRole.DOCTOR]), validateQuery(searchQuerySchema), PatientController.searchPatients);
 router.get('/patients/:patientId', authenticateToken, requireRole([UserRole.ADMIN, UserRole.DOCTOR]), validateParams(patientIdParamSchema), PatientController.getPatientById);
 router.put('/patients/:patientId', authenticateToken, requireRole([UserRole.ADMIN, UserRole.DOCTOR]), validateParams(patientIdParamSchema), validateBody(patientUpdateSchema), PatientController.updatePatient);
-router.get('/patients/:patientId/history', authenticateToken, requireRole([UserRole.DOCTOR, UserRole.ADMIN, UserRole.PATIENT]), validateParams(patientIdParamSchema), validateQuery(medicalHistoryPaginationSchema), PatientController.getPatientMedicalHistory);
+// OTP generation route for patients
+router.post('/patients/:patientId/otp', authenticateToken, requireRole([UserRole.PATIENT]), validateParams(patientIdParamSchema), generateOTPForPatient);
+
+// Medical history route with OTP verification
+router.get('/patients/:patientId/history', authenticateToken, requireRole([UserRole.DOCTOR, UserRole.ADMIN, UserRole.PATIENT]), validateParams(patientIdParamSchema), validateQuery(medicalHistoryPaginationSchema), requireOTPVerification, PatientController.getPatientMedicalHistory);
 
 // Doctor and Admin only routes
 router.post('/patients/:patientId/visits', authenticateToken, requireRole([UserRole.DOCTOR, UserRole.ADMIN]), validateParams(patientIdParamSchema), validateBody(medicalVisitSchema), PatientController.createMedicalVisit);
