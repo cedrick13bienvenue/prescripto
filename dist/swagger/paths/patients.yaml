@@ -320,12 +320,66 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /patients/{patientId}/otp:
+    post:
+      tags:
+        - Patients
+      summary: Generate OTP for medical history access
+      description: Generate and send OTP code to patient's email for medical history access verification
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: patientId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Patient ID
+      responses:
+        200:
+          description: OTP generated and sent successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OTPGenerationResponse"
+        400:
+          description: Bad request - validation error or OTP already exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        401:
+          description: Unauthorized - token required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        403:
+          description: Forbidden - only patients can request OTP
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        404:
+          description: Patient not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        500:
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
   /patients/{patientId}/history:
     get:
       tags:
         - Patients
       summary: Get patient medical history
-      description: Retrieve complete medical history including visits and prescriptions. Patients can only access their own medical history, while doctors and admins can access any patient's history.
+      description: Retrieve complete medical history including visits and prescriptions. Patients must provide OTP code as query parameter.
       security:
         - bearerAuth: []
       parameters:
@@ -372,6 +426,13 @@ paths:
             enum: ["ASC", "DESC"]
             default: DESC
           description: Sort order
+        - name: otpCode
+          in: query
+          schema:
+            type: string
+            pattern: '^\d{6}$'
+            example: "123456"
+          description: 6-digit OTP code required for patient role users
       responses:
         200:
           description: Medical history retrieved successfully
@@ -396,6 +457,12 @@ paths:
                           $ref: "#/components/schemas/PrescriptionResponse"
                   pagination:
                     $ref: "#/components/schemas/Pagination"
+        400:
+          description: Bad request - OTP required or invalid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OTPErrorResponse"
         401:
           description: Unauthorized - token required
           content:
