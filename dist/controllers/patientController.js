@@ -306,6 +306,7 @@ class PatientController {
                 });
             }
             // Security check: Patients can only view their own medical history
+            // Note: OTP verification is handled by middleware for PATIENT role
             if (user.role === models_1.UserRole.PATIENT) {
                 // Find the patient record for this user
                 const patient = await patientService_1.PatientService.getPatientByUserId(user.id);
@@ -457,6 +458,18 @@ class PatientController {
                 },
             });
         }
+    }
+    // Generate OTP for medical history access (handled by middleware)
+    static async generateOTP(req, res) {
+        // This method is handled by the generateOTPForPatient middleware
+        // The middleware will send the response, so this method is not called
+        res.status(500).json({
+            success: false,
+            error: {
+                message: 'OTP generation should be handled by middleware',
+                statusCode: 500,
+            },
+        });
     }
 }
 exports.PatientController = PatientController;
