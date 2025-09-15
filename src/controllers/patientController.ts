@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { PatientService } from '../services/patientService';
+import { OTPService } from '../services/otpService';
 import { authenticateToken, requireRole } from '../middleware/auth';
 import { UserRole } from '../models';
 import { PatientRegistrationData, MedicalVisitData, PrescriptionData } from '../types';
@@ -345,6 +346,7 @@ static async getAllPatients (req: Request, res: Response) {
       }
 
       // Security check: Patients can only view their own medical history
+      // Note: OTP verification is handled by middleware for PATIENT role
       if (user.role === UserRole.PATIENT) {
         // Find the patient record for this user
         const patient = await PatientService.getPatientByUserId(user.id);
@@ -515,5 +517,18 @@ static async getAllPatients (req: Request, res: Response) {
         },
       });
     }
+  }
+
+  // Generate OTP for medical history access (handled by middleware)
+  static async generateOTP (req: Request, res: Response) {
+    // This method is handled by the generateOTPForPatient middleware
+    // The middleware will send the response, so this method is not called
+    res.status(500).json({
+      success: false,
+      error: {
+        message: 'OTP generation should be handled by middleware',
+        statusCode: 500,
+      },
+    });
   }
 }
