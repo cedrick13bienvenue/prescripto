@@ -94,6 +94,30 @@ class EmailService {
         }
     }
     /**
+     * Send OTP email for medical history access
+     */
+    static async sendOTPEmail(data) {
+        try {
+            const transporter = await this.getTransporter();
+            const htmlContent = this.generateOTPEmailHTML(data);
+            const textContent = this.generateOTPEmailText(data);
+            const mailOptions = {
+                from: `"MedConnect Security" <${process.env['SMTP_USER']}>`,
+                to: data.patientEmail,
+                subject: 'Medical History Access - OTP Verification',
+                text: textContent,
+                html: htmlContent
+            };
+            const result = await transporter.sendMail(mailOptions);
+            console.log('✅ OTP email sent successfully:', result.messageId);
+            return true;
+        }
+        catch (error) {
+            console.error('❌ Failed to send OTP email:', error);
+            throw new Error(`Failed to send OTP email: ${error.message}`);
+        }
+    }
+    /**
      * Send password reset email
      */
     static async sendPasswordResetEmail(userEmail, resetToken, userName) {
@@ -317,6 +341,86 @@ ${roleSpecificMessage}
 Login to your account: ${data.loginUrl}
 
 This is an automated message from MedConnect. Please do not reply to this email.
+    `.trim();
+    }
+    /**
+     * Generate HTML content for OTP email
+     */
+    static generateOTPEmailHTML(data) {
+        const expiryTime = data.expiresAt.toLocaleString();
+        return `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f8f9fa;">
+        <div style="background-color: #2c3e50; color: white; padding: 20px; text-align: center;">
+          <h1 style="margin: 0;">MedConnect Security</h1>
+          <p style="margin: 5px 0 0 0;">Medical History Access Verification</p>
+        </div>
+        
+        <div style="padding: 20px; background-color: white;">
+          <h2 style="color: #2c3e50;">Hello ${data.patientName},</h2>
+          <p style="color: #000000;">You have requested access to your medical history. Please use the OTP code below to verify your identity:</p>
+          
+          <div style="background-color: #ecf0f1; padding: 20px; border-radius: 5px; margin: 20px 0; text-align: center;">
+            <h3 style="margin-top: 0; color: #2c3e50;">Your OTP Code</h3>
+            <div style="background-color: #2c3e50; color: white; font-size: 32px; font-weight: bold; padding: 15px; border-radius: 5px; letter-spacing: 5px; display: inline-block; margin: 10px 0;">
+              ${data.otpCode}
+            </div>
+            <p style="color: #7f8c8d; font-size: 14px; margin: 10px 0 0 0;">
+              This code will expire at ${expiryTime}
+            </p>
+          </div>
+
+          <div style="background-color: #e8f5e8; padding: 15px; border-radius: 5px; margin: 20px 0;">
+            <h4 style="margin-top: 0; color: #27ae60;">Security Information</h4>
+            <ul style="margin: 0; padding-left: 20px; color: #000000;">
+              <li>This OTP is valid for 10 minutes only</li>
+              <li>Use this code only for medical history access</li>
+              <li>Do not share this code with anyone</li>
+              <li>If you didn't request this access, please contact support immediately</li>
+            </ul>
+          </div>
+
+          <div style="background-color: #fff3cd; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #ffc107;">
+            <h4 style="margin-top: 0; color: #856404;">Important</h4>
+            <p style="margin: 0; color: #856404;">
+              For your security, this OTP can only be used once. After successful verification, 
+              you will be able to access your medical history for the current session.
+            </p>
+          </div>
+
+          <p style="color: #7f8c8d; font-size: 12px; text-align: center; margin-top: 30px;">
+            This is an automated security message from MedConnect. Please do not reply to this email.
+          </p>
+        </div>
+      </div>
+    `;
+    }
+    /**
+     * Generate text content for OTP email
+     */
+    static generateOTPEmailText(data) {
+        const expiryTime = data.expiresAt.toLocaleString();
+        return `
+MedConnect Security - Medical History Access Verification
+
+Hello ${data.patientName},
+
+You have requested access to your medical history. Please use the OTP code below to verify your identity:
+
+YOUR OTP CODE: ${data.otpCode}
+
+This code will expire at ${expiryTime}
+
+SECURITY INFORMATION:
+- This OTP is valid for 10 minutes only
+- Use this code only for medical history access
+- Do not share this code with anyone
+- If you didn't request this access, please contact support immediately
+
+IMPORTANT:
+For your security, this OTP can only be used once. After successful verification, 
+you will be able to access your medical history for the current session.
+
+This is an automated security message from MedConnect. Please do not reply to this email.
     `.trim();
     }
     /**
