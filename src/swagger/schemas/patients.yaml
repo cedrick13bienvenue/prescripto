@@ -433,3 +433,58 @@ components:
           type: string
           format: date-time
           example: "2024-01-01T00:00:00.000Z"
+
+    OTPVerificationRequest:
+      type: object
+      required: [otpCode]
+      properties:
+        otpCode:
+          type: string
+          pattern: '^\d{6}$'
+          example: "123456"
+          description: 6-digit OTP code received via email
+          minLength: 6
+          maxLength: 6
+
+    OTPGenerationResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: OTP sent successfully to your email address
+        data:
+          type: object
+          properties:
+            expiresAt:
+              type: string
+              format: date-time
+              example: "2024-01-15T10:30:00.000Z"
+              description: OTP expiration time
+            otpId:
+              type: string
+              format: uuid
+              example: 123e4567-e89b-12d3-a456-426614174005
+              description: OTP record ID
+
+    OTPErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: object
+          properties:
+            message:
+              type: string
+              example: OTP code is required for medical history access. Please request an OTP first.
+            statusCode:
+              type: integer
+              example: 400
+            requiresOTP:
+              type: boolean
+              example: true
+              description: Indicates that OTP verification is required
