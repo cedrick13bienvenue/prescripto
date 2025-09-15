@@ -10,7 +10,7 @@ import { AuthenticatedRequest } from './auth';
 export const requireOTPVerification = async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { patientId } = req.params;
-    const { otpCode } = req.query;
+    const { otpCode } = req.body;
 
     // Check if user is authenticated
     if (!req.user) {
@@ -61,7 +61,7 @@ export const requireOTPVerification = async (req: AuthenticatedRequest, res: Res
       res.status(400).json({
         success: false,
         error: {
-          message: 'OTP code is required for medical history access. Please request an OTP first and include it as a query parameter.',
+          message: 'OTP code is required for medical history access. Please request an OTP first and include it in the request body.',
           statusCode: 400,
           requiresOTP: true,
         },

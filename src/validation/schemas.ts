@@ -200,6 +200,16 @@ export const otpVerificationSchema = Joi.object({
   otpCode: Joi.string().length(6).pattern(/^\d{6}$/).required()
 });
 
+// Medical history request with OTP (for POST method)
+export const medicalHistoryWithOTPSchema = Joi.object({
+  page: Joi.number().integer().min(1).default(1),
+  limit: Joi.number().integer().min(1).max(100).default(10),
+  type: Joi.string().valid('all', 'visits', 'prescriptions').default('all'),
+  sortBy: Joi.string().valid('createdAt', 'updatedAt', 'date').default('createdAt'),
+  sortOrder: Joi.string().valid('ASC', 'DESC').default('DESC'),
+  otpCode: Joi.string().length(6).pattern(/^\d{6}$/).required()
+});
+
 // Custom validation messages
 export const customMessages = {
   'string.email': 'Please provide a valid email address',
