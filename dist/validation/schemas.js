@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.validationOptions = exports.customMessages = exports.emailTestSchema = exports.referenceNumberParamSchema = exports.pharmacistIdParamSchema = exports.prescriptionIdParamSchema = exports.doctorIdParamSchema = exports.patientIdParamSchema = exports.userIdParamSchema = exports.medicalHistoryPaginationSchema = exports.advancedPaginationSchema = exports.paginationSchema = exports.searchQuerySchema = exports.qrCodeVerificationSchema = exports.prescriptionUpdateSchema = exports.prescriptionSchema = exports.prescriptionItemSchema = exports.medicalVisitSchema = exports.doctorUpdateSchema = exports.doctorRegistrationSchema = exports.patientUpdateSchema = exports.patientRegistrationSchema = exports.passwordChangeSchema = exports.userLoginSchema = exports.userRegistrationSchema = void 0;
+exports.validationOptions = exports.customMessages = exports.otpVerificationSchema = exports.emailTestSchema = exports.referenceNumberParamSchema = exports.pharmacistIdParamSchema = exports.prescriptionIdParamSchema = exports.doctorIdParamSchema = exports.patientIdParamSchema = exports.userIdParamSchema = exports.medicalHistoryPaginationSchema = exports.advancedPaginationSchema = exports.paginationSchema = exports.searchQuerySchema = exports.qrCodeVerificationSchema = exports.prescriptionUpdateSchema = exports.prescriptionSchema = exports.prescriptionItemSchema = exports.medicalVisitSchema = exports.doctorUpdateSchema = exports.doctorRegistrationSchema = exports.patientUpdateSchema = exports.patientRegistrationSchema = exports.passwordChangeSchema = exports.userLoginSchema = exports.userRegistrationSchema = void 0;
 const joi_1 = __importDefault(require("joi"));
 const models_1 = require("../models");
 // Common validation patterns
@@ -144,7 +144,8 @@ exports.medicalHistoryPaginationSchema = joi_1.default.object({
     limit: joi_1.default.number().min(1).max(50).default(10),
     type: joi_1.default.string().valid('visits', 'prescriptions', 'all').default('all'),
     sortBy: joi_1.default.string().valid('createdAt', 'visitDate', 'prescriptionNumber').default('createdAt'),
-    sortOrder: joi_1.default.string().valid('ASC', 'DESC').default('DESC')
+    sortOrder: joi_1.default.string().valid('ASC', 'DESC').default('DESC'),
+    otpCode: joi_1.default.string().length(6).pattern(/^\d{6}$/).optional()
 });
 // User ID Parameter Schema
 exports.userIdParamSchema = joi_1.default.object({
@@ -174,6 +175,10 @@ exports.referenceNumberParamSchema = joi_1.default.object({
 exports.emailTestSchema = joi_1.default.object({
     email: emailPattern,
     name: joi_1.default.string().min(2).max(100).trim().required()
+});
+// OTP Verification Schema
+exports.otpVerificationSchema = joi_1.default.object({
+    otpCode: joi_1.default.string().length(6).pattern(/^\d{6}$/).required()
 });
 // Custom validation messages
 exports.customMessages = {
