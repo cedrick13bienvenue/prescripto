@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const patientController_1 = require("../controllers/patientController");
 const auth_1 = require("../middleware/auth");
+const otpVerification_1 = require("../middleware/otpVerification");
 const models_1 = require("../models");
 const validation_1 = require("../middleware/validation");
 const schemas_1 = require("../validation/schemas");
@@ -12,7 +13,10 @@ router.post('/patients/register', auth_1.authenticateToken, (0, auth_1.requireRo
 router.get('/patients/search', auth_1.authenticateToken, (0, auth_1.requireRole)([models_1.UserRole.ADMIN, models_1.UserRole.DOCTOR]), (0, validation_1.validateQuery)(schemas_1.searchQuerySchema), patientController_1.PatientController.searchPatients);
 router.get('/patients/:patientId', auth_1.authenticateToken, (0, auth_1.requireRole)([models_1.UserRole.ADMIN, models_1.UserRole.DOCTOR]), (0, validation_1.validateParams)(schemas_1.patientIdParamSchema), patientController_1.PatientController.getPatientById);
 router.put('/patients/:patientId', auth_1.authenticateToken, (0, auth_1.requireRole)([models_1.UserRole.ADMIN, models_1.UserRole.DOCTOR]), (0, validation_1.validateParams)(schemas_1.patientIdParamSchema), (0, validation_1.validateBody)(schemas_1.patientUpdateSchema), patientController_1.PatientController.updatePatient);
-router.get('/patients/:patientId/history', auth_1.authenticateToken, (0, auth_1.requireRole)([models_1.UserRole.DOCTOR, models_1.UserRole.ADMIN, models_1.UserRole.PATIENT]), (0, validation_1.validateParams)(schemas_1.patientIdParamSchema), (0, validation_1.validateQuery)(schemas_1.medicalHistoryPaginationSchema), patientController_1.PatientController.getPatientMedicalHistory);
+// OTP generation route for patients
+router.post('/patients/:patientId/otp', auth_1.authenticateToken, (0, auth_1.requireRole)([models_1.UserRole.PATIENT]), (0, validation_1.validateParams)(schemas_1.patientIdParamSchema), otpVerification_1.generateOTPForPatient);
+// Medical history route with OTP verification
+router.get('/patients/:patientId/history', auth_1.authenticateToken, (0, auth_1.requireRole)([models_1.UserRole.DOCTOR, models_1.UserRole.ADMIN, models_1.UserRole.PATIENT]), (0, validation_1.validateParams)(schemas_1.patientIdParamSchema), (0, validation_1.validateQuery)(schemas_1.medicalHistoryPaginationSchema), otpVerification_1.requireOTPVerification, patientController_1.PatientController.getPatientMedicalHistory);
 // Doctor and Admin only routes
 router.post('/patients/:patientId/visits', auth_1.authenticateToken, (0, auth_1.requireRole)([models_1.UserRole.DOCTOR, models_1.UserRole.ADMIN]), (0, validation_1.validateParams)(schemas_1.patientIdParamSchema), (0, validation_1.validateBody)(schemas_1.medicalVisitSchema), patientController_1.PatientController.createMedicalVisit);
 router.post('/patients/:patientId/prescriptions', auth_1.authenticateToken, (0, auth_1.requireRole)([models_1.UserRole.DOCTOR, models_1.UserRole.ADMIN]), (0, validation_1.validateParams)(schemas_1.patientIdParamSchema), (0, validation_1.validateBody)(schemas_1.prescriptionSchema), patientController_1.PatientController.createPrescription);
