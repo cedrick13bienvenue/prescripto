@@ -45,6 +45,46 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /pharmacy/lookup:
+    post:
+      tags:
+        - Pharmacy Operations
+      summary: Lookup prescription by patient reference number
+      description: Look up a prescription using the patient reference number for patients without email (Pharmacist only)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReferenceNumberLookupRequest"
+      responses:
+        200:
+          description: Prescription found successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReferenceNumberLookupResponse"
+        400:
+          description: Bad request - invalid reference number or prescription not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        401:
+          description: Unauthorized - token required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        403:
+          description: Forbidden - pharmacist role required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
   /pharmacy/validate/{prescriptionId}:
     post:
       tags:

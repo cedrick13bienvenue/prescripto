@@ -226,3 +226,62 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+
+  /auth/forgot-password:
+    post:
+      tags:
+        - Authentication
+      summary: Request password reset
+      description: Send OTP code to user's email for password reset
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PasswordResetRequest"
+      responses:
+        200:
+          description: Password reset OTP sent successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PasswordResetResponse"
+        400:
+          description: Bad request - validation error or user not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /auth/reset-password:
+    post:
+      tags:
+        - Authentication
+      summary: Reset password with OTP
+      description: Reset user password using OTP code received via email
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PasswordReset"
+      responses:
+        200:
+          description: Password reset successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Password reset successfully
+        400:
+          description: Bad request - validation error, invalid OTP, or user not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"

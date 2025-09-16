@@ -108,3 +108,52 @@ components:
           minLength: 6
           example: newpassword123
           description: New password (minimum 6 characters)
+
+    PasswordResetRequest:
+      type: object
+      required: [email]
+      properties:
+        email:
+          type: string
+          format: email
+          example: user@example.com
+          description: User email address for password reset
+
+    PasswordReset:
+      type: object
+      required: [email, otpCode, newPassword]
+      properties:
+        email:
+          type: string
+          format: email
+          example: user@example.com
+          description: User email address
+        otpCode:
+          type: string
+          pattern: "^[0-9]{6}$"
+          example: "123456"
+          description: 6-digit OTP code received via email
+        newPassword:
+          type: string
+          minLength: 8
+          pattern: '^(?=.*[a-zA-Z])(?=.*\d)'
+          example: newpassword123
+          description: New password (minimum 8 characters with at least one letter and one number)
+
+    PasswordResetResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Password reset OTP sent successfully to your email address
+        data:
+          type: object
+          properties:
+            expiresAt:
+              type: string
+              format: date-time
+              example: "2024-01-01T12:00:00.000Z"
+              description: OTP expiration time

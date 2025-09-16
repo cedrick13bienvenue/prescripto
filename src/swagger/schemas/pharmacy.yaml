@@ -9,6 +9,82 @@ components:
           example: "abc123def456ghi789"
           description: The QR code hash to scan
 
+    ReferenceNumberLookupRequest:
+      type: object
+      required: [referenceNumber]
+      properties:
+        referenceNumber:
+          type: string
+          example: "PAT-20241201-4327"
+          description: The patient reference number to lookup
+
+    ReferenceNumberLookupResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Prescription found successfully"
+        data:
+          type: object
+          properties:
+            prescription:
+              type: object
+              properties:
+                id:
+                  type: string
+                  format: uuid
+                  example: "123e4567-e89b-12d3-a456-426614174000"
+                prescriptionNumber:
+                  type: string
+                  example: "RX-20241201-1234"
+                patientName:
+                  type: string
+                  example: "John Doe"
+                doctorName:
+                  type: string
+                  example: "Dr. Smith"
+                diagnosis:
+                  type: string
+                  example: "Fever and bacterial infection"
+                doctorNotes:
+                  type: string
+                  example: "Take with food, complete full course"
+                status:
+                  type: string
+                  enum: [pending, scanned, validated, dispensed, rejected]
+                  example: "pending"
+                items:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      medicineName:
+                        type: string
+                        example: "Amoxicillin"
+                      dosage:
+                        type: string
+                        example: "500mg"
+                      frequency:
+                        type: string
+                        example: "Twice daily"
+                      quantity:
+                        type: integer
+                        example: 20
+                      instructions:
+                        type: string
+                        example: "Take with food"
+                createdAt:
+                  type: string
+                  format: date-time
+                  example: "2024-12-01T10:30:00.000Z"
+            canDispense:
+              type: boolean
+              example: true
+              description: Whether the prescription can be dispensed
+
     QRCodeScanResponse:
       type: object
       properties:
@@ -115,23 +191,11 @@ components:
           description: Optional notes from pharmacist
         dispensingItems:
           type: array
-          description: Array of items being dispensed with inventory details
+          description: Array of items being dispensed with inventory details (order must match prescription items)
           items:
             type: object
-            required:
-              [
-                prescriptionItemId,
-                dispensedQuantity,
-                unitPrice,
-                batchNumber,
-                expiryDate,
-              ]
+            required: [dispensedQuantity, unitPrice, batchNumber, expiryDate]
             properties:
-              prescriptionItemId:
-                type: string
-                format: uuid
-                example: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
-                description: ID of the prescription item
               dispensedQuantity:
                 type: integer
                 minimum: 1
