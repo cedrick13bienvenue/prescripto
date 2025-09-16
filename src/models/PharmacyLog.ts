@@ -4,6 +4,7 @@ import Prescription from './Prescription';
 import User from './User';
 
 export enum PharmacyAction {
+  SCAN = 'scan',
   SCANNED = 'scanned',
   VALIDATED = 'validated',
   DISPENSED = 'dispensed',

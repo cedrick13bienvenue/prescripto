@@ -3,10 +3,10 @@ import { sequelize } from '../database/config/database';
 
 export interface OTPVerificationAttributes {
   id: string;
-  patientId: string;
+  patientId?: string;
   email: string;
   otpCode: string;
-  purpose: 'medical_history_access';
+  purpose: 'medical_history_access' | 'password_reset';
   isUsed: boolean;
   expiresAt: Date;
   createdAt?: Date;
@@ -17,10 +17,10 @@ export type OTPVerificationCreationAttributes = Omit<OTPVerificationAttributes, 
 
 class OTPVerification extends Model<OTPVerificationAttributes, OTPVerificationCreationAttributes> implements OTPVerificationAttributes {
   public id!: string;
-  public patientId!: string;
+  public patientId?: string;
   public email!: string;
   public otpCode!: string;
-  public purpose!: 'medical_history_access';
+  public purpose!: 'medical_history_access' | 'password_reset';
   public isUsed!: boolean;
   public expiresAt!: Date;
   public readonly createdAt!: Date;
@@ -73,6 +73,24 @@ class OTPVerification extends Model<OTPVerificationAttributes, OTPVerificationCr
 
     return otp;
   }
+
+  // Find valid OTP by code and email (for password reset)
+  public static async findValidOTPByEmail(otpCode: string, email: string, purpose: 'medical_history_access' | 'password_reset'): Promise<OTPVerification | null> {
+    const otp = await OTPVerification.findOne({
+      where: {
+        otpCode,
+        email,
+        purpose,
+        isUsed: false
+      }
+    });
+
+    if (!otp || otp.isExpired()) {
+      return null;
+    }
+
+    return otp;
+  }
 }
 
 OTPVerification.init(
@@ -84,7 +102,7 @@ OTPVerification.init(
     },
     patientId: {
       type: DataTypes.UUID,
-      allowNull: false,
+      allowNull: true,
       field: 'patient_id',
       references: {
         model: 'patients',
@@ -101,7 +119,7 @@ OTPVerification.init(
       field: 'otp_code',
     },
     purpose: {
-      type: DataTypes.ENUM('medical_history_access'),
+      type: DataTypes.ENUM('medical_history_access', 'password_reset'),
       allowNull: false,
       defaultValue: 'medical_history_access',
     },
