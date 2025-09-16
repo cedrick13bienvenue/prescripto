@@ -406,21 +406,36 @@
           </div>
 
           <div class="manual-input">
-            <h4>Manual QR Hash Entry</h4>
-            <p style="font-size: 12px; color: #6c757d; margin-bottom: 10px">
-              Enter the QR hash from the patient's email if camera scanning is
-              not available.
+            <h4>Alternative Lookup Methods</h4>
+            <p style="font-size: 12px; color: #6c757d; margin-bottom: 15px">
+              Use this method for patients without email addresses.
             </p>
+
             <div class="form-group">
+              <label
+                style="
+                  font-size: 12px;
+                  color: #2c3e50;
+                  margin-bottom: 5px;
+                  display: block;
+                "
+              >
+                Patient Reference Number:
+              </label>
               <input
                 type="text"
-                id="manualQrHash"
-                placeholder="Enter QR hash from patient email"
+                id="referenceNumber"
+                placeholder="Enter patient reference number (e.g., PAT-20241201-4327)"
+                style="margin-bottom: 10px"
               />
+              <button
+                class="btn"
+                onclick="lookupByReference()"
+                style="width: 100%"
+              >
+                Lookup by Reference
+              </button>
             </div>
-            <button class="btn" onclick="scanManualHash()">
-              Scan Manual Hash
-            </button>
           </div>
         </div>
 
@@ -496,6 +511,7 @@
           qrScanner = new QrScanner(
             video,
             (result) => {
+              console.log("QR Code detected:", result.data);
               // Stop scanning after successful detection
               stopScanner();
               // Restore console.error
@@ -530,18 +546,20 @@
         }
       }
 
-      // Scan manual hash
-      function scanManualHash() {
-        const hash = document.getElementById("manualQrHash").value.trim();
-        if (!hash) {
-          alert("Please enter a QR hash");
+      // Lookup by reference number
+      function lookupByReference() {
+        const referenceNumber = document
+          .getElementById("referenceNumber")
+          .value.trim();
+        if (!referenceNumber) {
+          alert("Please enter a reference number");
           return;
         }
-        scanQRCode(hash);
+        lookupPrescriptionByReference(referenceNumber);
       }
 
-      // Scan QR code
-      async function scanQRCode(qrHash) {
+      // Lookup prescription by reference number
+      async function lookupPrescriptionByReference(referenceNumber) {
         if (!currentToken) {
           alert("Please login first");
           return;
@@ -554,7 +572,67 @@
         contentDiv.innerHTML = `
                 <div class="loading">
                     <div class="spinner"></div>
+                    <p>Looking up prescription...</p>
+                </div>
+            `;
+        resultDiv.classList.add("show");
+
+        try {
+          const response = await fetch(`${API_BASE}/pharmacy/lookup`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${currentToken}`,
+            },
+            body: JSON.stringify({ referenceNumber }),
+          });
+
+          const data = await response.json();
+
+          if (data.success && data.data.prescription) {
+            displayPrescription(data.data.prescription, null, "reference");
+          } else {
+            contentDiv.innerHTML = `
+                        <div class="error-message">
+                            Lookup failed: ${
+                              data.error?.message ||
+                              data.message ||
+                              "Unknown error"
+                            }
+                        </div>
+                    `;
+          }
+        } catch (error) {
+          contentDiv.innerHTML = `
+                    <div class="error-message">
+                        Network error: ${error.message}
+                    </div>
+                `;
+        }
+      }
+
+      // Scan QR code
+      async function scanQRCode(qrHash) {
+        if (!currentToken) {
+          alert("Please login first");
+          return;
+        }
+
+        console.log("QR Code scanned, data:", qrHash);
+
+        const resultDiv = document.getElementById("resultSection");
+        const contentDiv = document.getElementById("resultContent");
+
+        // Show loading
+        contentDiv.innerHTML = `
+                <div class="loading">
+                    <div class="spinner"></div>
                     <p>Scanning QR code...</p>
+                    <p style="font-size: 12px; color: #666; margin-top: 10px;">
+                      QR Data: ${
+                        qrHash ? qrHash.substring(0, 20) + "..." : "No data"
+                      }
+                    </p>
                 </div>
             `;
         resultDiv.classList.add("show");
@@ -572,7 +650,7 @@
           const data = await response.json();
 
           if (data.success && data.data.prescription) {
-            displayPrescription(data.data.prescription);
+            displayPrescription(data.data.prescription, null, "qr");
           } else {
             contentDiv.innerHTML = `
                         <div class="error-message">
@@ -594,7 +672,7 @@
       }
 
       // Display prescription details
-      function displayPrescription(prescription) {
+      function displayPrescription(prescription, qrHash = null, source = "qr") {
         const contentDiv = document.getElementById("resultContent");
 
         const statusClass = `status-${prescription.status}`;
@@ -690,9 +768,44 @@
                               prescription.canDispense ? "Yes" : "No"
                             }</div>
                         </div>
+                        ${
+                          source === "reference" && prescription.qrCode?.qrHash
+                            ? `
+                        <div class="detail-item">
+                            <div class="detail-label">QR Hash</div>
+                            <div class="detail-value" style="font-family: monospace; background-color: #f8f9fa; padding: 8px; border-radius: 4px; word-break: break-all; font-size: 12px;">
+                                ${prescription.qrCode.qrHash}
+                                <button onclick="copyToClipboard('${prescription.qrCode.qrHash}')" style="margin-left: 10px; padding: 4px 8px; background-color: #3498db; color: white; border: none; border-radius: 3px; cursor: pointer; font-size: 11px;">
+                                    Copy
+                                </button>
+                            </div>
+                        </div>
+                    `
+                            : ""
+                        }
                     </div>
                 </div>
             `;
+      }
+
+      // Copy to clipboard function
+      function copyToClipboard(text) {
+        navigator.clipboard
+          .writeText(text)
+          .then(() => {
+            alert("QR Hash copied to clipboard!");
+          })
+          .catch((err) => {
+            console.error("Failed to copy: ", err);
+            // Fallback for older browsers
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand("copy");
+            document.body.removeChild(textArea);
+            alert("QR Hash copied to clipboard!");
+          });
       }
 
       // Cleanup on page unload
