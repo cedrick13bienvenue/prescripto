@@ -7,12 +7,14 @@ import {
 } from '../middleware/auth';
 import { UserRole } from '../models';
 import { validateBody, validateParams } from '../middleware/validation';
-import { userLoginSchema, passwordChangeSchema, userIdParamSchema } from '../validation/schemas';
+import { userLoginSchema, passwordChangeSchema, userIdParamSchema, passwordResetRequestSchema, passwordResetSchema } from '../validation/schemas';
 
 const router = Router();
 
-// Public routes - login only
+// Public routes - login and password reset
 router.post('/auth/login', validateBody(userLoginSchema), AuthController.login);
+router.post('/auth/forgot-password', validateBody(passwordResetRequestSchema), AuthController.requestPasswordReset);
+router.post('/auth/reset-password', validateBody(passwordResetSchema), AuthController.resetPassword);
 
 // Protected routes
 router.get('/auth/profile', authenticateToken, requireRole([UserRole.DOCTOR, UserRole.ADMIN]), AuthController.getProfile);
