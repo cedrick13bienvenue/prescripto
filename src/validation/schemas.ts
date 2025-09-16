@@ -3,7 +3,7 @@ import { UserRole } from '../models';
 
 // Common validation patterns
 const emailPattern = Joi.string().email().required();
-const passwordPattern = Joi.string().min(8).pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/).required();
+const passwordPattern = Joi.string().min(8).pattern(/^(?=.*[a-zA-Z])(?=.*\d)/).required();
 const uuidPattern = Joi.string().uuid().required();
 const phonePattern = Joi.string().pattern(/^\+?[\d\s-()]+$/).optional();
 const datePattern = Joi.date().max('now').required();
@@ -26,6 +26,18 @@ export const userLoginSchema = Joi.object({
 // Password Change Schema
 export const passwordChangeSchema = Joi.object({
   currentPassword: Joi.string().required(),
+  newPassword: passwordPattern
+});
+
+// Password Reset Request Schema
+export const passwordResetRequestSchema = Joi.object({
+  email: emailPattern
+});
+
+// Password Reset Schema
+export const passwordResetSchema = Joi.object({
+  email: emailPattern,
+  otpCode: Joi.string().length(6).pattern(/^\d{6}$/).required(),
   newPassword: passwordPattern
 });
 
@@ -80,7 +92,6 @@ export const doctorUpdateSchema = Joi.object({
 
 // Medical Visit Schema
 export const medicalVisitSchema = Joi.object({
-  patientId: uuidPattern,
   doctorId: uuidPattern,
   visitDate: datePattern,
   visitType: Joi.string().valid('consultation', 'emergency', 'followup').required(),
@@ -107,7 +118,6 @@ export const prescriptionItemSchema = Joi.object({
 
 // Prescription Schema
 export const prescriptionSchema = Joi.object({
-  patientId: uuidPattern,
   doctorId: uuidPattern,
   visitId: uuidPattern,
   diagnosis: Joi.string().min(5).max(500).trim().required(),
@@ -187,6 +197,11 @@ export const pharmacistIdParamSchema = Joi.object({
 // Reference Number Parameter Schema
 export const referenceNumberParamSchema = Joi.object({
   referenceNumber: Joi.string().pattern(/^PAT-\d{8}-\d{4}$/).required()
+});
+
+// Reference Number Lookup Schema
+export const referenceNumberLookupSchema = Joi.object({
+  referenceNumber: Joi.string().min(1).max(50).trim().required()
 });
 
 // Email Test Schema
