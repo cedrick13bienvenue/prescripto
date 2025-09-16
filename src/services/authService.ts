@@ -4,6 +4,7 @@ import { User, UserRole, TokenBlacklist } from '../models';
 import Doctor from '../models/Doctor';
 import Patient from '../models/Patient';
 import { LoginCredentials, RegisterData, AuthResponse, UserProfile, ChangePasswordData, JwtPayload } from '../types';
+import { OTPService } from './otpService';
 
 export class AuthService {
   // User registration
@@ -237,6 +238,57 @@ export class AuthService {
       await TokenBlacklist.cleanupExpiredTokens();
     } catch (error) {
       console.warn('Error cleaning up expired tokens:', error);
+    }
+  }
+
+  // Request password reset
+  static async requestPasswordReset (email: string) {
+    try {
+      const result = await OTPService.generateAndSendPasswordResetOTP(email);
+      
+      if (!result.success) {
+        throw new Error(result.message);
+      }
+
+      return {
+        message: result.message,
+        expiresAt: result.expiresAt,
+      };
+    } catch (error: any) {
+      console.error('Error in requestPasswordReset:', error);
+      throw error;
+    }
+  }
+
+  // Reset password with OTP
+  static async resetPassword (email: string, otpCode: string, newPassword: string) {
+    try {
+      // Verify OTP first
+      const otpResult = await OTPService.verifyPasswordResetOTP(otpCode, email);
+      
+      if (!otpResult.isValid) {
+        throw new Error(otpResult.message);
+      }
+
+      // Find user by email
+      const user = await User.findOne({ where: { email } });
+      if (!user) {
+        throw new Error('User not found');
+      }
+
+      // Check if user is active
+      if (!user.isActive) {
+        throw new Error('Account is deactivated. Please contact support.');
+      }
+
+      // Hash new password and update
+      const hashedPassword = await user.hashPassword(newPassword);
+      await user.update({ passwordHash: hashedPassword });
+
+      return { message: 'Password reset successfully' };
+    } catch (error: any) {
+      console.error('Error in resetPassword:', error);
+      throw error;
     }
   }
 }

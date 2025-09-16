@@ -41,6 +41,16 @@ export interface ChangePasswordData {
   newPassword: string;
 }
 
+export interface PasswordResetRequestData {
+  email: string;
+}
+
+export interface PasswordResetData {
+  email: string;
+  otpCode: string;
+  newPassword: string;
+}
+
 export interface JwtPayload {
   id: string;
   email: string;

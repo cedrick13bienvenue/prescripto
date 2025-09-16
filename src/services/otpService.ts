@@ -22,6 +22,13 @@ export interface OTPEmailData {
   expiresAt: Date;
 }
 
+export interface PasswordResetEmailData {
+  userName: string;
+  userEmail: string;
+  otpCode: string;
+  expiresAt: Date;
+}
+
 export class OTPService {
   private static readonly OTP_EXPIRY_MINUTES = 10; // OTP expires in 10 minutes
 
@@ -141,6 +148,128 @@ export class OTPService {
     }
   }
 
+
+  /**
+   * Generate and send OTP for password reset
+   */
+  static async generateAndSendPasswordResetOTP(email: string): Promise<OTPGenerationResult> {
+    try {
+      // Find user by email
+      const { User } = await import('../models');
+      const user = await User.findOne({ where: { email } });
+
+      if (!user) {
+        return {
+          success: false,
+          message: 'User not found with this email address'
+        };
+      }
+
+      // Check if user is active
+      if (!user.isActive) {
+        return {
+          success: false,
+          message: 'Account is deactivated. Please contact support.'
+        };
+      }
+
+      // Check if there's already a valid password reset OTP for this email
+      const existingOTP = await OTPVerification.findOne({
+        where: {
+          email,
+          isUsed: false,
+          purpose: 'password_reset'
+        }
+      });
+
+      if (existingOTP && !existingOTP.isExpired()) {
+        return {
+          success: false,
+          message: 'A password reset OTP has already been sent. Please check your email or wait for it to expire.'
+        };
+      }
+
+      // Generate new OTP
+      const otpCode = OTPVerification.generateOTPCode();
+      const expiresAt = new Date(Date.now() + this.OTP_EXPIRY_MINUTES * 60 * 1000);
+
+      // Create OTP record
+      const otpRecord = await OTPVerification.create({
+        email,
+        otpCode,
+        purpose: 'password_reset',
+        isUsed: false,
+        expiresAt
+      });
+
+      // Send password reset OTP email
+      const emailData: PasswordResetEmailData = {
+        userName: user.fullName,
+        userEmail: user.email,
+        otpCode,
+        expiresAt
+      };
+
+      await this.sendPasswordResetOTPEmail(emailData);
+
+      return {
+        success: true,
+        otpId: otpRecord.id,
+        message: 'Password reset OTP sent successfully to your email address',
+        expiresAt
+      };
+    } catch (error: any) {
+      console.error('Error generating password reset OTP:', error);
+      return {
+        success: false,
+        message: `Failed to generate password reset OTP: ${error.message}`
+      };
+    }
+  }
+
+  /**
+   * Verify password reset OTP code
+   */
+  static async verifyPasswordResetOTP(otpCode: string, email: string): Promise<OTPVerificationResult> {
+    try {
+      const otp = await OTPVerification.findValidOTPByEmail(otpCode, email, 'password_reset');
+
+      if (!otp) {
+        return {
+          isValid: false,
+          message: 'Invalid or expired password reset OTP code'
+        };
+      }
+
+      // Mark OTP as used
+      otp.isUsed = true;
+      await otp.save();
+
+      return {
+        isValid: true,
+        message: 'Password reset OTP verified successfully',
+        otpId: otp.id
+      };
+    } catch (error: any) {
+      console.error('Error verifying password reset OTP:', error);
+      return {
+        isValid: false,
+        message: `Failed to verify password reset OTP: ${error.message}`
+      };
+    }
+  }
+
+  /**
+   * Send password reset OTP email
+   */
+  private static async sendPasswordResetOTPEmail(data: PasswordResetEmailData): Promise<boolean> {
+    try {
+      return await EmailService.sendPasswordResetOTPEmail(data);
+    } catch (error: any) {
+      console.error('❌ Failed to send password reset OTP email:', error);
+      throw new Error(`Failed to send password reset OTP email: ${error.message}`);
+    }
+  }
 
   /**
    * Clean up expired OTPs

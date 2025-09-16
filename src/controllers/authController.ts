@@ -221,4 +221,71 @@ export class AuthController {
       });
     }
   }
+
+  // Request password reset
+  static async requestPasswordReset (req: Request, res: Response) {
+    try {
+      const { email } = req.body;
+
+      if (!email) {
+        return res.status(400).json({
+          success: false,
+          error: {
+            message: 'Email is required',
+            statusCode: 400,
+          },
+        });
+      }
+
+      const result = await AuthService.requestPasswordReset(email);
+
+      res.status(200).json({
+        success: true,
+        message: result.message,
+        data: {
+          expiresAt: result.expiresAt,
+        },
+      });
+    } catch (error: any) {
+      res.status(400).json({
+        success: false,
+        error: {
+          message: error.message,
+          statusCode: 400,
+        },
+      });
+    }
+  }
+
+  // Reset password with OTP
+  static async resetPassword (req: Request, res: Response) {
+    try {
+      const { email, otpCode, newPassword } = req.body;
+
+      if (!email || !otpCode || !newPassword) {
+        return res.status(400).json({
+          success: false,
+          error: {
+            message: 'Email, OTP code, and new password are required',
+            statusCode: 400,
+          },
+        });
+      }
+
+      const result = await AuthService.resetPassword(email, otpCode, newPassword);
+
+      res.status(200).json({
+        success: true,
+        message: result.message,
+      });
+    } catch (error: any) {
+      res.status(400).json({
+        success: false,
+        error: {
+          message: error.message,
+          statusCode: 400,
+        },
+      });
+    }
+  }
 }
