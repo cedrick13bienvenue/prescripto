@@ -8,6 +8,7 @@ const router = Router();
 
 // Pharmacist only routes for pharmacy operations
 router.post('/pharmacy/scan', authenticateToken, requirePharmacist, PharmacyController.scanQRCode);
+router.post('/pharmacy/lookup', authenticateToken, requirePharmacist, PharmacyController.lookupByReferenceNumber);
 router.post('/pharmacy/validate/:prescriptionId', authenticateToken, requirePharmacist, validateParams(prescriptionIdParamSchema), PharmacyController.validatePrescription);
 router.post('/pharmacy/dispense/:prescriptionId', authenticateToken, requirePharmacist, validateParams(prescriptionIdParamSchema), PharmacyController.dispensePrescription);
 router.post('/pharmacy/reject/:prescriptionId', authenticateToken, requirePharmacist, validateParams(prescriptionIdParamSchema), PharmacyController.rejectPrescription);

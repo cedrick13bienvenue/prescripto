@@ -24,6 +24,146 @@ export interface PharmacyLogEntry {
 
 export class PharmacyService {
   /**
+   * Look up prescription by patient reference number
+   */
+  static async lookupByReferenceNumber(referenceNumber: string, pharmacistId: string): Promise<PrescriptionScanResult> {
+    try {
+      // Find patient by reference number first
+      const { Patient } = await import('../models');
+      const patient = await Patient.findOne({
+        where: { referenceNumber: referenceNumber },
+        include: [{ association: 'user' }]
+      });
+
+      if (!patient) {
+        return {
+          prescription: null,
+          isValid: false,
+          message: 'Patient not found with this reference number',
+          canDispense: false
+        };
+      }
+
+      // Find the most recent valid prescription for this patient
+      const prescription = await Prescription.findOne({
+        where: { 
+          patientId: patient.id,
+          status: [PrescriptionStatus.PENDING, PrescriptionStatus.SCANNED, PrescriptionStatus.VALIDATED]
+        },
+        include: [
+          { association: 'patient', include: [{ association: 'user' }] },
+          { association: 'doctor', include: [{ association: 'user' }] },
+          { association: 'items' },
+          { association: 'visit' },
+          { association: 'qrCode' }
+        ],
+        order: [['createdAt', 'DESC']] // Get the most recent prescription
+      });
+
+      if (!prescription) {
+        return {
+          prescription: null,
+          isValid: false,
+          message: 'No valid prescription found for this patient. Please ensure the patient has a prescription that is pending, scanned, or validated.',
+          canDispense: false
+        };
+      }
+
+      // Check if prescription is still valid (not expired, not fulfilled)
+      const now = new Date();
+      const prescriptionAge = now.getTime() - prescription.createdAt.getTime();
+      const maxAge = 30 * 24 * 60 * 60 * 1000; // 30 days in milliseconds
+
+      if (prescriptionAge > maxAge) {
+        return {
+          prescription: null,
+          isValid: false,
+          message: 'Prescription has expired (older than 30 days)',
+          canDispense: false
+        };
+      }
+
+      if (prescription.status === PrescriptionStatus.FULFILLED) {
+        return {
+          prescription: null,
+          isValid: false,
+          message: 'Prescription has already been fulfilled',
+          canDispense: false
+        };
+      }
+
+      if (prescription.status === PrescriptionStatus.CANCELLED) {
+        return {
+          prescription: null,
+          isValid: false,
+          message: 'Prescription has been cancelled',
+          canDispense: false
+        };
+      }
+
+      // Generate QR code if it doesn't exist
+      if (!(prescription as any).qrCode) {
+        const { QRCodeService } = await import('./qrCodeService');
+        await QRCodeService.generateQRCode(prescription.id);
+        
+        // Reload prescription with QR code
+        const updatedPrescription = await Prescription.findByPk(prescription.id, {
+          include: [
+            { association: 'patient', include: [{ association: 'user' }] },
+            { association: 'doctor', include: [{ association: 'user' }] },
+            { association: 'items' },
+            { association: 'visit' },
+            { association: 'qrCode' }
+          ]
+        });
+        
+        if (updatedPrescription) {
+          (prescription as any).qrCode = (updatedPrescription as any).qrCode;
+        }
+      }
+
+      // Log the lookup action
+      await this.logPharmacyAction({
+        prescriptionId: prescription.id,
+        pharmacistId,
+        action: PharmacyAction.SCAN,
+        notes: `Prescription looked up by patient reference number: ${referenceNumber}`
+      });
+
+      return {
+        prescription: {
+          id: prescription.id,
+          prescriptionNumber: prescription.prescriptionNumber,
+          patientName: (prescription as any).patient?.user?.fullName || '',
+          doctorName: (prescription as any).doctor?.user?.fullName || '',
+          diagnosis: prescription.diagnosis,
+          doctorNotes: prescription.doctorNotes,
+          status: prescription.status,
+          items: (prescription as any).items || [],
+          createdAt: prescription.createdAt,
+          qrCode: {
+            qrHash: (prescription as any).qrCode?.qrHash,
+            isUsed: (prescription as any).qrCode?.isUsed,
+            scanCount: (prescription as any).qrCode?.scanCount,
+            expiresAt: (prescription as any).qrCode?.expiresAt
+          }
+        },
+        isValid: true,
+        message: 'Prescription found successfully',
+        canDispense: prescription.status === PrescriptionStatus.PENDING || prescription.status === PrescriptionStatus.SCANNED
+      };
+    } catch (error: any) {
+      console.error('Error looking up prescription by reference number:', error);
+      return {
+        prescription: null,
+        isValid: false,
+        message: `Error looking up prescription: ${error.message}`,
+        canDispense: false
+      };
+    }
+  }
+
+  /**
    * Scan QR code and validate prescription
    */
   static async scanQRCode(qrHash: string, pharmacistId: string): Promise<PrescriptionScanResult> {
@@ -200,7 +340,6 @@ export class PharmacyService {
     dispensingData?: {
       notes?: string;
       dispensingItems?: Array<{
-        prescriptionItemId: string;
         dispensedQuantity: number;
         unitPrice: number;
         batchNumber: string;
@@ -240,20 +379,22 @@ export class PharmacyService {
       let patientPayment = 0;
 
       if (dispensingData?.dispensingItems) {
-        for (const item of dispensingData.dispensingItems) {
-          const prescriptionItem = (prescription as any).items.find((pi: any) => pi.id === item.prescriptionItemId);
-          if (prescriptionItem) {
-            // Update prescription item with dispensing details
-            await prescriptionItem.update({
-              dispensedQuantity: item.dispensedQuantity,
-              unitPrice: item.unitPrice,
-              batchNumber: item.batchNumber,
-              expiryDate: item.expiryDate,
-              isDispensed: true
-            });
+        const prescriptionItems = (prescription as any).items || [];
+        
+        for (let i = 0; i < dispensingData.dispensingItems.length && i < prescriptionItems.length; i++) {
+          const dispensingItem = dispensingData.dispensingItems[i];
+          const prescriptionItem = prescriptionItems[i];
+          
+          // Update prescription item with dispensing details
+          await prescriptionItem.update({
+            dispensedQuantity: dispensingItem.dispensedQuantity,
+            unitPrice: dispensingItem.unitPrice,
+            batchNumber: dispensingItem.batchNumber,
+            expiryDate: dispensingItem.expiryDate,
+            isDispensed: true
+          });
 
-            totalAmount += item.dispensedQuantity * item.unitPrice;
-          }
+          totalAmount += dispensingItem.dispensedQuantity * dispensingItem.unitPrice;
         }
 
         // Calculate insurance coverage if provided

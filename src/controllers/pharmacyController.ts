@@ -4,6 +4,66 @@ import { AuthenticatedRequest } from '../middleware/auth';
 
 export class PharmacyController {
   /**
+   * Look up prescription by reference number
+   * POST /api/v1/pharmacy/lookup
+   */
+  static async lookupByReferenceNumber(req: AuthenticatedRequest, res: Response) {
+    try {
+      const { referenceNumber } = req.body;
+
+      if (!referenceNumber) {
+        return res.status(400).json({
+          success: false,
+          error: {
+            message: 'Reference number is required',
+            statusCode: 400,
+          },
+        });
+      }
+
+      if (!req.user) {
+        return res.status(401).json({
+          success: false,
+          error: {
+            message: 'Authentication required',
+            statusCode: 401,
+          },
+        });
+      }
+
+      const result = await PharmacyService.lookupByReferenceNumber(referenceNumber, req.user.id);
+
+      if (!result.isValid) {
+        return res.status(400).json({
+          success: false,
+          error: {
+            message: result.message,
+            statusCode: 400,
+          },
+        });
+      }
+
+      res.status(200).json({
+        success: true,
+        message: result.message,
+        data: {
+          prescription: result.prescription,
+          canDispense: result.canDispense,
+        },
+      });
+    } catch (error: any) {
+      console.error('Error in lookupByReferenceNumber:', error);
+      res.status(500).json({
+        success: false,
+        error: {
+          message: 'Internal server error',
+          statusCode: 500,
+        },
+      });
+    }
+  }
+
+  /**
    * Scan QR code and get prescription details
    * POST /api/v1/pharmacy/scan
    */
