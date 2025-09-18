@@ -110,11 +110,72 @@ static async getAllPatients (req: Request, res: Response) {
       });
     } catch (error: any) {
       console.error('Patient registration error:', error);
-      res.status(400).json({
+      
+      // Handle specific database constraint errors
+      if (error.name === 'SequelizeUniqueConstraintError') {
+        const constraintErrors = error.errors || [];
+        
+        for (const constraintError of constraintErrors) {
+          if (constraintError.path === 'email') {
+            return res.status(409).json({
+              success: false,
+              error: {
+                message: 'This email address is already registered. Please use a different email.',
+                statusCode: 409,
+                field: 'email',
+                code: 'EMAIL_EXISTS'
+              },
+            });
+          }
+          if (constraintError.path === 'insurance_number') {
+            return res.status(409).json({
+              success: false,
+              error: {
+                message: 'This insurance number is already registered. Please use a different insurance number.',
+                statusCode: 409,
+                field: 'insuranceNumber',
+                code: 'INSURANCE_NUMBER_EXISTS'
+              },
+            });
+          }
+        }
+        
+        return res.status(409).json({
+          success: false,
+          error: {
+            message: 'A record with this information already exists. Please check your details and try again.',
+            statusCode: 409,
+            code: 'DUPLICATE_RECORD'
+          },
+        });
+      }
+      
+      // Handle validation errors
+      if (error.name === 'SequelizeValidationError') {
+        const validationErrors = error.errors || [];
+        const fieldErrors = validationErrors.map((err: any) => ({
+          field: err.path,
+          message: err.message
+        }));
+        
+        return res.status(400).json({
+          success: false,
+          error: {
+            message: 'Validation failed. Please check your input data.',
+            statusCode: 400,
+            code: 'VALIDATION_ERROR',
+            details: fieldErrors
+          },
+        });
+      }
+      
+      // Handle other errors
+      res.status(500).json({
         success: false,
         error: {
-          message: error.message || 'Patient registration failed',
-          statusCode: 400,
+          message: error.message || 'Patient registration failed. Please try again later.',
+          statusCode: 500,
+          code: 'INTERNAL_ERROR'
         },
       });
     }
@@ -312,10 +373,38 @@ static async getAllPatients (req: Request, res: Response) {
         patientId: patientId,
       });
 
+      // Format the response to match the expected structure
+      const visitData = visit as any; // Type assertion for the included data
+      const formattedVisit = {
+        id: visitData.id,
+        visitDate: visitData.visitDate,
+        visitType: visitData.visitType,
+        chiefComplaint: visitData.chiefComplaint,
+        symptoms: visitData.symptoms,
+        diagnosis: visitData.diagnosis,
+        treatmentNotes: visitData.treatmentNotes,
+        recommendations: visitData.recommendations,
+        doctor: {
+          fullName: visitData.doctor?.user?.fullName || visitData.doctor?.fullName,
+          email: visitData.doctor?.user?.email || visitData.doctor?.email,
+          phone: visitData.doctor?.user?.phone || visitData.doctor?.phone,
+          specialization: visitData.doctor?.specialization,
+          hospitalName: visitData.doctor?.hospitalName
+        },
+        patient: {
+          id: visitData.patient?.id,
+          fullName: visitData.patient?.user?.fullName || visitData.patient?.fullName,
+          email: visitData.patient?.user?.email || visitData.patient?.email,
+          insuranceProvider: visitData.patient?.insuranceProvider,
+          insuranceNumber: visitData.patient?.insuranceNumber
+        },
+        createdAt: visitData.createdAt
+      };
+
       res.status(201).json({
         success: true,
         message: 'Medical visit created successfully',
-        data: visit,
+        data: formattedVisit,
       });
     } catch (error: any) {
       console.error('Medical visit creation error:', error);
@@ -428,10 +517,45 @@ static async getAllPatients (req: Request, res: Response) {
         patientId: patientId,
       });
 
+      // Format the response to match the expected structure
+      const prescriptionData = prescription as any; // Type assertion for the included data
+      const formattedPrescription = {
+        id: prescriptionData.id,
+        prescriptionNumber: prescriptionData.prescriptionNumber,
+        diagnosis: prescriptionData.diagnosis,
+        doctorNotes: prescriptionData.doctorNotes,
+        status: prescriptionData.status,
+        qrCodeHash: prescriptionData.qrCodeHash,
+        items: prescriptionData.items?.map((item: any) => ({
+          id: item.id,
+          medicineName: item.medicineName,
+          dosage: item.dosage,
+          frequency: item.frequency,
+          quantity: item.quantity,
+          instructions: item.instructions
+        })) || [],
+        doctor: {
+          fullName: prescriptionData.doctor?.user?.fullName || prescriptionData.doctor?.fullName,
+          email: prescriptionData.doctor?.user?.email || prescriptionData.doctor?.email,
+          phone: prescriptionData.doctor?.user?.phone || prescriptionData.doctor?.phone,
+          specialization: prescriptionData.doctor?.specialization,
+          hospitalName: prescriptionData.doctor?.hospitalName
+        },
+        patient: {
+          id: prescriptionData.patient?.id,
+          fullName: prescriptionData.patient?.user?.fullName || prescriptionData.patient?.fullName,
+          email: prescriptionData.patient?.user?.email || prescriptionData.patient?.email,
+          insuranceProvider: prescriptionData.patient?.insuranceProvider,
+          insuranceNumber: prescriptionData.patient?.insuranceNumber
+        },
+        createdAt: prescriptionData.createdAt,
+        updatedAt: prescriptionData.updatedAt
+      };
+
       res.status(201).json({
         success: true,
         message: 'Prescription created successfully',
-        data: prescription,
+        data: formattedPrescription,
       });
     } catch (error: any) {
       res.status(400).json({
