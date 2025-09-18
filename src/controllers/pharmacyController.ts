@@ -189,7 +189,7 @@ export class PharmacyController {
   static async dispensePrescription(req: AuthenticatedRequest, res: Response) {
     try {
       const { prescriptionId } = req.params;
-      const { notes } = req.body;
+      const { notes, dispensingItems } = req.body;
 
       if (!prescriptionId) {
         return res.status(400).json({
@@ -211,7 +211,12 @@ export class PharmacyController {
         });
       }
 
-      const result = await PharmacyService.dispensePrescription(prescriptionId, req.user.id, notes);
+      const dispensingData = {
+        notes,
+        dispensingItems
+      };
+
+      const result = await PharmacyService.dispensePrescription(prescriptionId, req.user.id, dispensingData);
 
       if (!result.success) {
         return res.status(400).json({

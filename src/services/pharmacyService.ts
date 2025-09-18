@@ -1,5 +1,5 @@
 import { QRCodeService } from './qrCodeService';
-import { Prescription, PrescriptionStatus, PharmacyLog, PharmacyAction, QRCode } from '../models';
+import { Prescription, PrescriptionStatus, PharmacyLog, PharmacyAction, QRCode, Doctor, Patient, PrescriptionItem } from '../models';
 import { User } from '../models';
 
 export interface PrescriptionScanResult {
@@ -311,15 +311,51 @@ export class PharmacyService {
         notes: notes || 'Prescription validated by pharmacist'
       });
 
+      // Get enhanced prescription data with doctor and patient information
+      const enhancedPrescription = await Prescription.findByPk(prescription.id, {
+        include: [
+          {
+            model: Doctor,
+            as: 'doctor',
+            include: [{
+              model: User,
+              as: 'user',
+              attributes: ['email', 'fullName', 'phone']
+            }]
+          },
+          {
+            model: Patient,
+            as: 'patient',
+            include: [{
+              model: User,
+              as: 'user',
+              attributes: ['email', 'fullName']
+            }]
+          }
+        ]
+      });
+
       return {
         success: true,
         message: 'Prescription validated successfully',
         prescription: {
-          id: prescription.id,
-          prescriptionNumber: prescription.prescriptionNumber,
-          status: prescription.status,
-          patientName: (prescription as any).patient?.user?.fullName || '',
-          doctorName: (prescription as any).doctor?.user?.fullName || ''
+          id: enhancedPrescription?.id,
+          prescriptionNumber: enhancedPrescription?.prescriptionNumber,
+          status: enhancedPrescription?.status,
+          doctor: {
+            fullName: (enhancedPrescription as any)?.doctor?.user?.fullName || (enhancedPrescription as any)?.doctor?.fullName,
+            email: (enhancedPrescription as any)?.doctor?.user?.email || (enhancedPrescription as any)?.doctor?.email,
+            phone: (enhancedPrescription as any)?.doctor?.user?.phone || (enhancedPrescription as any)?.doctor?.phone,
+            specialization: (enhancedPrescription as any)?.doctor?.specialization,
+            hospitalName: (enhancedPrescription as any)?.doctor?.hospitalName
+          },
+          patient: {
+            id: (enhancedPrescription as any)?.patient?.id,
+            fullName: (enhancedPrescription as any)?.patient?.user?.fullName || (enhancedPrescription as any)?.patient?.fullName,
+            email: (enhancedPrescription as any)?.patient?.user?.email || (enhancedPrescription as any)?.patient?.email,
+            insuranceProvider: (enhancedPrescription as any)?.patient?.insuranceProvider,
+            insuranceNumber: (enhancedPrescription as any)?.patient?.insuranceNumber
+          }
         }
       };
     } catch (error: any) {
@@ -345,8 +381,6 @@ export class PharmacyService {
         batchNumber: string;
         expiryDate: Date;
       }>;
-      insuranceProvider?: string;
-      insuranceNumber?: string;
     }
   ): Promise<DispenseResult> {
     try {
@@ -375,8 +409,6 @@ export class PharmacyService {
 
       // Process dispensing items if provided
       let totalAmount = 0;
-      let insuranceCoverage = 0;
-      let patientPayment = 0;
 
       if (dispensingData?.dispensingItems) {
         const prescriptionItems = (prescription as any).items || [];
@@ -396,22 +428,6 @@ export class PharmacyService {
 
           totalAmount += dispensingItem.dispensedQuantity * dispensingItem.unitPrice;
         }
-
-        // Calculate insurance coverage if provided
-        if (dispensingData.insuranceProvider && dispensingData.insuranceNumber) {
-          const patient = (prescription as any).patient;
-          if (patient.insuranceProvider === dispensingData.insuranceProvider && 
-              patient.insuranceNumber === dispensingData.insuranceNumber) {
-            // Simulate insurance coverage calculation
-            const coveragePercentage = this.getInsuranceCoveragePercentage(dispensingData.insuranceProvider);
-            insuranceCoverage = totalAmount * (coveragePercentage / 100);
-            patientPayment = totalAmount - insuranceCoverage;
-          } else {
-            patientPayment = totalAmount;
-          }
-        } else {
-          patientPayment = totalAmount;
-        }
       }
 
       // Update prescription status
@@ -430,12 +446,7 @@ export class PharmacyService {
         pharmacistId,
         action: PharmacyAction.DISPENSED,
         notes: dispensingData?.notes || 'Prescription dispensed to patient',
-        totalAmount,
-        insuranceCoverage,
-        patientPayment,
-        insuranceProvider: dispensingData?.insuranceProvider,
-        insuranceNumber: dispensingData?.insuranceNumber,
-        insuranceApprovalCode: insuranceCoverage > 0 ? this.generateApprovalCode() : undefined
+        totalAmount
       });
 
       // Log fulfillment action
@@ -446,18 +457,69 @@ export class PharmacyService {
         notes: 'Prescription completely fulfilled'
       });
 
+      // Get enhanced prescription data with doctor and patient information
+      const enhancedPrescription = await Prescription.findByPk(prescription.id, {
+        include: [
+          {
+            model: Doctor,
+            as: 'doctor',
+            include: [{
+              model: User,
+              as: 'user',
+              attributes: ['email', 'fullName', 'phone']
+            }]
+          },
+          {
+            model: Patient,
+            as: 'patient',
+            include: [{
+              model: User,
+              as: 'user',
+              attributes: ['email', 'fullName']
+            }]
+          },
+          {
+            model: PrescriptionItem,
+            as: 'items'
+          }
+        ]
+      });
+
       return {
         success: true,
         message: 'Prescription dispensed successfully',
         prescription: {
-          id: prescription.id,
-          prescriptionNumber: prescription.prescriptionNumber,
-          status: prescription.status,
-          patientName: (prescription as any).patient?.user?.fullName || '',
-          doctorName: (prescription as any).doctor?.user?.fullName || '',
+          id: enhancedPrescription?.id,
+          prescriptionNumber: enhancedPrescription?.prescriptionNumber,
+          status: enhancedPrescription?.status,
           totalAmount,
-          insuranceCoverage,
-          patientPayment
+          doctor: {
+            fullName: (enhancedPrescription as any)?.doctor?.user?.fullName || (enhancedPrescription as any)?.doctor?.fullName,
+            email: (enhancedPrescription as any)?.doctor?.user?.email || (enhancedPrescription as any)?.doctor?.email,
+            phone: (enhancedPrescription as any)?.doctor?.user?.phone || (enhancedPrescription as any)?.doctor?.phone,
+            specialization: (enhancedPrescription as any)?.doctor?.specialization,
+            hospitalName: (enhancedPrescription as any)?.doctor?.hospitalName
+          },
+          patient: {
+            id: (enhancedPrescription as any)?.patient?.id,
+            fullName: (enhancedPrescription as any)?.patient?.user?.fullName || (enhancedPrescription as any)?.patient?.fullName,
+            email: (enhancedPrescription as any)?.patient?.user?.email || (enhancedPrescription as any)?.patient?.email,
+            insuranceProvider: (enhancedPrescription as any)?.patient?.insuranceProvider,
+            insuranceNumber: (enhancedPrescription as any)?.patient?.insuranceNumber
+          },
+          items: (enhancedPrescription as any)?.items?.map((item: any) => ({
+            id: item.id,
+            medicineName: item.medicineName,
+            dosage: item.dosage,
+            frequency: item.frequency,
+            quantity: item.quantity,
+            instructions: item.instructions,
+            dispensedQuantity: item.dispensedQuantity,
+            unitPrice: item.unitPrice,
+            batchNumber: item.batchNumber,
+            expiryDate: item.expiryDate,
+            isDispensed: item.isDispensed
+          })) || []
         }
       };
     } catch (error: any) {
