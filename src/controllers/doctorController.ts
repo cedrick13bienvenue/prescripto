@@ -88,11 +88,72 @@ export class DoctorController {
       });
     } catch (error: any) {
       console.error('Doctor registration error:', error);
-      res.status(400).json({
+      
+      // Handle specific database constraint errors
+      if (error.name === 'SequelizeUniqueConstraintError') {
+        const constraintErrors = error.errors || [];
+        
+        for (const constraintError of constraintErrors) {
+          if (constraintError.path === 'license_number') {
+            return res.status(409).json({
+              success: false,
+              error: {
+                message: 'This license number already exists. Please use a different license number.',
+                statusCode: 409,
+                field: 'licenseNumber',
+                code: 'LICENSE_NUMBER_EXISTS'
+              },
+            });
+          }
+          if (constraintError.path === 'email') {
+            return res.status(409).json({
+              success: false,
+              error: {
+                message: 'This email address is already registered. Please use a different email.',
+                statusCode: 409,
+                field: 'email',
+                code: 'EMAIL_EXISTS'
+              },
+            });
+          }
+        }
+        
+        return res.status(409).json({
+          success: false,
+          error: {
+            message: 'A record with this information already exists. Please check your details and try again.',
+            statusCode: 409,
+            code: 'DUPLICATE_RECORD'
+          },
+        });
+      }
+      
+      // Handle validation errors
+      if (error.name === 'SequelizeValidationError') {
+        const validationErrors = error.errors || [];
+        const fieldErrors = validationErrors.map((err: any) => ({
+          field: err.path,
+          message: err.message
+        }));
+        
+        return res.status(400).json({
+          success: false,
+          error: {
+            message: 'Validation failed. Please check your input data.',
+            statusCode: 400,
+            code: 'VALIDATION_ERROR',
+            details: fieldErrors
+          },
+        });
+      }
+      
+      // Handle other errors
+      res.status(500).json({
         success: false,
         error: {
-          message: error.message || 'Doctor registration failed',
-          statusCode: 400,
+          message: error.message || 'Doctor registration failed. Please try again later.',
+          statusCode: 500,
+          code: 'INTERNAL_ERROR'
         },
       });
     }

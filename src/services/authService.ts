@@ -5,10 +5,14 @@ import Doctor from '../models/Doctor';
 import Patient from '../models/Patient';
 import { LoginCredentials, RegisterData, AuthResponse, UserProfile, ChangePasswordData, JwtPayload } from '../types';
 import { OTPService } from './otpService';
+import { sequelize } from '../database/config/database';
 
 export class AuthService {
   // User registration
   static async register (data: RegisterData): Promise<AuthResponse> {
+    // Use database transaction to ensure both user and profile are created together
+    const transaction = await sequelize.transaction();
+    
     try {
       // Check if user already exists
       const existingUser = await User.findOne({ where: { email: data.email } });
@@ -20,7 +24,7 @@ export class AuthService {
       const tempUser = new User();
       const hashedPassword = await tempUser.hashPassword(data.password);
 
-      // Create new user with hashed password
+      // Create new user with hashed password within transaction
       const user = await User.create({
         email: data.email,
         passwordHash: hashedPassword,
@@ -28,15 +32,18 @@ export class AuthService {
         role: data.role,
         phone: data.phone,
         isActive: true,
-      });
+      }, { transaction });
 
-      // If registering as a doctor, create doctor profile
+      // If registering as a doctor, create doctor profile within transaction
       if (data.role === UserRole.DOCTOR) {
         await Doctor.create({
           userId: user.id,
           isVerified: false, // Not verified initially
-        });
+        }, { transaction });
       }
+
+      // Commit the transaction if everything succeeds
+      await transaction.commit();
 
       // Generate JWT token
       const token = this.generateToken(user);
@@ -52,6 +59,9 @@ export class AuthService {
         token,
       };
     } catch (error: any) {
+      // Rollback the transaction if anything fails
+      await transaction.rollback();
+      
       console.error('Error in register:', error);
       
       // Handle specific Sequelize errors
