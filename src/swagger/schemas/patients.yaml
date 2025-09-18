@@ -212,6 +212,10 @@ components:
           type: string
           example: Follow up in 1 week if symptoms persist
           description: Doctor recommendations (optional)
+        hospitalName:
+          type: string
+          example: Kigali University Teaching Hospital
+          description: Hospital name where the visit took place (optional)
 
     MedicalVisitResponse:
       type: object
@@ -250,6 +254,39 @@ components:
             email:
               type: string
               example: doctor@hospital.com
+            phone:
+              type: string
+              example: "+250788123456"
+              description: Doctor's phone number
+            specialization:
+              type: string
+              example: "General Medicine"
+              description: Doctor's medical specialization
+            hospitalName:
+              type: string
+              example: "Kigali University Teaching Hospital"
+              description: Hospital where the doctor works
+        patient:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+              example: 123e4567-e89b-12d3-a456-426614174000
+            fullName:
+              type: string
+              example: Jane Smith
+            email:
+              type: string
+              example: patient@example.com
+            insuranceProvider:
+              type: string
+              example: RSSB
+              description: Patient's insurance provider
+            insuranceNumber:
+              type: string
+              example: INS123456
+              description: Patient's insurance policy number
         createdAt:
           type: string
           format: date-time
@@ -302,6 +339,10 @@ components:
           type: string
           example: Patient should complete full course
           description: Additional doctor notes (optional)
+        hospitalName:
+          type: string
+          example: Kigali University Teaching Hospital
+          description: Hospital name where the prescription was issued (optional)
         items:
           type: array
           items:
@@ -425,6 +466,39 @@ components:
             email:
               type: string
               example: doctor@hospital.com
+            phone:
+              type: string
+              example: "+250788123456"
+              description: Doctor's phone number
+            specialization:
+              type: string
+              example: "General Medicine"
+              description: Doctor's medical specialization
+            hospitalName:
+              type: string
+              example: "Kigali University Teaching Hospital"
+              description: Hospital where the doctor works
+        patient:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+              example: 123e4567-e89b-12d3-a456-426614174000
+            fullName:
+              type: string
+              example: Jane Smith
+            email:
+              type: string
+              example: patient@example.com
+            insuranceProvider:
+              type: string
+              example: RSSB
+              description: Patient's insurance provider
+            insuranceNumber:
+              type: string
+              example: INS123456
+              description: Patient's insurance policy number
         createdAt:
           type: string
           format: date-time
@@ -488,3 +562,82 @@ components:
               type: boolean
               example: true
               description: Indicates that OTP verification is required
+
+    PatientRegistrationErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: object
+          properties:
+            message:
+              type: string
+              example: This email address is already registered. Please use a different email.
+            statusCode:
+              type: integer
+              example: 409
+            field:
+              type: string
+              example: email
+            code:
+              type: string
+              example: EMAIL_EXISTS
+              enum:
+                [
+                  EMAIL_EXISTS,
+                  INSURANCE_NUMBER_EXISTS,
+                  DUPLICATE_RECORD,
+                  VALIDATION_ERROR,
+                  INTERNAL_ERROR,
+                ]
+
+    PatientValidationErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: object
+          properties:
+            message:
+              type: string
+              example: Validation failed. Please check your input data.
+            statusCode:
+              type: integer
+              example: 400
+            code:
+              type: string
+              example: VALIDATION_ERROR
+            details:
+              type: array
+              items:
+                type: object
+                properties:
+                  field:
+                    type: string
+                    example: email
+                  message:
+                    type: string
+                    example: Please provide a valid email address
+
+    PatientInternalErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: object
+          properties:
+            message:
+              type: string
+              example: Patient registration failed. Please try again later.
+            statusCode:
+              type: integer
+              example: 500
+            code:
+              type: string
+              example: INTERNAL_ERROR

@@ -97,56 +97,54 @@ components:
         data:
           type: object
           properties:
-            prescription:
+            id:
+              type: string
+              format: uuid
+              example: "123e4567-e89b-12d3-a456-426614174000"
+            prescriptionNumber:
+              type: string
+              example: "RX-20241201-1234"
+            status:
+              type: string
+              enum: [pending, scanned, validated, dispensed, rejected]
+              example: "validated"
+            doctor:
+              type: object
+              properties:
+                fullName:
+                  type: string
+                  example: "Dr. Michael Johnson"
+                email:
+                  type: string
+                  example: "michael.johnson@hospital.com"
+                phone:
+                  type: string
+                  example: "+250788123456"
+                specialization:
+                  type: string
+                  example: "General Medicine"
+                hospitalName:
+                  type: string
+                  example: "City General Hospital"
+            patient:
               type: object
               properties:
                 id:
                   type: string
                   format: uuid
-                  example: "123e4567-e89b-12d3-a456-426614174000"
-                prescriptionNumber:
+                  example: "123e4567-e89b-12d3-a456-426614174001"
+                fullName:
                   type: string
-                  example: "RX-20241201-1234"
-                patientName:
+                  example: "Jane Smith"
+                email:
                   type: string
-                  example: "John Doe"
-                doctorName:
+                  example: "jane.smith@email.com"
+                insuranceProvider:
                   type: string
-                  example: "Dr. Smith"
-                diagnosis:
+                  example: "HealthPlus Insurance"
+                insuranceNumber:
                   type: string
-                  example: "Fever and bacterial infection"
-                doctorNotes:
-                  type: string
-                  example: "Take with food, complete full course"
-                status:
-                  type: string
-                  enum: [pending, scanned, validated, dispensed, rejected]
-                  example: "scanned"
-                items:
-                  type: array
-                  items:
-                    type: object
-                    properties:
-                      id:
-                        type: string
-                        format: uuid
-                        example: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
-                      medicineName:
-                        type: string
-                        example: "Paracetamol"
-                      dosage:
-                        type: string
-                        example: "500mg"
-                      frequency:
-                        type: string
-                        example: "3 times daily"
-                      quantity:
-                        type: integer
-                        example: 30
-                      instructions:
-                        type: string
-                        example: "Take with food"
+                  example: "HPI789012"
                 createdAt:
                   type: string
                   format: date-time
@@ -219,14 +217,6 @@ components:
                 type: string
                 example: "Store in cool, dry place"
                 description: Optional notes for this specific item
-        insuranceProvider:
-          type: string
-          example: "Blue Cross"
-          description: Patient's insurance provider
-        insuranceNumber:
-          type: string
-          example: "BC123456789"
-          description: Patient's insurance number
 
     PrescriptionRejectRequest:
       type: object
@@ -253,38 +243,99 @@ components:
         data:
           type: object
           properties:
-            prescription:
+            id:
+              type: string
+              format: uuid
+              example: "123e4567-e89b-12d3-a456-426614174000"
+            prescriptionNumber:
+              type: string
+              example: "RX-20241201-1234"
+            status:
+              type: string
+              enum: [pending, scanned, validated, dispensed, rejected]
+              example: "dispensed"
+            totalAmount:
+              type: number
+              format: decimal
+              example: 465.00
+              description: Total amount for all dispensed items
+            doctor:
+              type: object
+              properties:
+                fullName:
+                  type: string
+                  example: "Dr. Michael Johnson"
+                email:
+                  type: string
+                  example: "michael.johnson@hospital.com"
+                phone:
+                  type: string
+                  example: "+250788123456"
+                specialization:
+                  type: string
+                  example: "General Medicine"
+                hospitalName:
+                  type: string
+                  example: "City General Hospital"
+            patient:
               type: object
               properties:
                 id:
                   type: string
                   format: uuid
-                prescriptionNumber:
+                  example: "123e4567-e89b-12d3-a456-426614174001"
+                fullName:
                   type: string
-                status:
+                  example: "Jane Smith"
+                email:
                   type: string
-                  enum: [pending, scanned, validated, dispensed, rejected]
-                patientName:
+                  example: "jane.smith@email.com"
+                insuranceProvider:
                   type: string
-                  example: "John Doe"
-                doctorName:
+                  example: "HealthPlus Insurance"
+                insuranceNumber:
                   type: string
-                  example: "Dr. Smith"
-                totalAmount:
-                  type: number
-                  format: decimal
-                  example: 465.00
-                  description: Total amount for all dispensed items
-                insuranceCoverage:
-                  type: number
-                  format: decimal
-                  example: 372.00
-                  description: Amount covered by insurance
-                patientPayment:
-                  type: number
-                  format: decimal
-                  example: 93.00
-                  description: Amount patient needs to pay
+                  example: "HPI789012"
+            items:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  medicineName:
+                    type: string
+                    example: "Paracetamol"
+                  dosage:
+                    type: string
+                    example: "500mg"
+                  frequency:
+                    type: string
+                    example: "2 times daily"
+                  quantity:
+                    type: integer
+                    example: 20
+                  instructions:
+                    type: string
+                    example: "Take with food"
+                  dispensedQuantity:
+                    type: integer
+                    example: 20
+                  unitPrice:
+                    type: number
+                    format: decimal
+                    example: 15.50
+                  batchNumber:
+                    type: string
+                    example: "BATCH-2024-001"
+                  expiryDate:
+                    type: string
+                    format: date
+                    example: "2025-12-31"
+                  isDispensed:
+                    type: boolean
+                    example: true
 
     PharmacyHistoryResponse:
       type: object
@@ -410,28 +461,6 @@ components:
           format: decimal
           example: 465.00
           description: Total amount for all items
-        insuranceCoverage:
-          type: number
-          format: decimal
-          example: 372.00
-          description: Amount covered by insurance
-        patientPayment:
-          type: number
-          format: decimal
-          example: 93.00
-          description: Amount patient needs to pay
-        insuranceProvider:
-          type: string
-          example: "Blue Cross"
-          description: Insurance provider
-        insuranceNumber:
-          type: string
-          example: "BC123456789"
-          description: Insurance number
-        insuranceApprovalCode:
-          type: string
-          example: "APP-1701435000000-ABC123"
-          description: Insurance approval code
         batchNumber:
           type: string
           example: "BATCH-2024-001"
@@ -493,16 +522,6 @@ components:
           format: decimal
           example: 465.00
           description: Total amount for all dispensed items
-        insuranceCoverage:
-          type: number
-          format: decimal
-          example: 372.00
-          description: Amount covered by insurance
-        patientPayment:
-          type: number
-          format: decimal
-          example: 93.00
-          description: Amount patient needs to pay
         dispensedItems:
           type: array
           description: List of dispensed items with inventory details
@@ -546,3 +565,49 @@ components:
                 email:
                   type: string
                   example: "jane.pharmacist@pharmacy.com"
+        doctor:
+          type: object
+          properties:
+            fullName:
+              type: string
+              example: "Dr. John Smith"
+            email:
+              type: string
+              example: "doctor@hospital.com"
+            phone:
+              type: string
+              example: "+250788123456"
+              description: Doctor's phone number
+            licenseNumber:
+              type: string
+              example: "MD-RW-2024-001"
+              description: Doctor's medical license number
+            specialization:
+              type: string
+              example: "General Medicine"
+              description: Doctor's medical specialization
+            hospitalName:
+              type: string
+              example: "Kigali University Teaching Hospital"
+              description: Hospital where the doctor works
+        patient:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+              example: 123e4567-e89b-12d3-a456-426614174000
+            fullName:
+              type: string
+              example: "Jane Smith"
+            email:
+              type: string
+              example: "patient@example.com"
+            insuranceProvider:
+              type: string
+              example: "RSSB"
+              description: Patient's insurance provider
+            insuranceNumber:
+              type: string
+              example: "INS123456"
+              description: Patient's insurance policy number
