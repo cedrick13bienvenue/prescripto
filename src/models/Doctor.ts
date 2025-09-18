@@ -7,6 +7,7 @@ export interface DoctorAttributes {
   userId: string;
   email: string; // Virtual field from User
   fullName: string; // Virtual field from User
+  phone?: string; // Virtual field from User
   licenseNumber?: string;
   specialization?: string;
   hospitalName?: string;
@@ -21,6 +22,7 @@ class Doctor extends Model<DoctorAttributes, DoctorCreationAttributes> implement
   public userId!: string;
   public email!: string; // Virtual field from User
   public fullName!: string; // Virtual field from User
+  public phone?: string; // Virtual field from User
   public licenseNumber?: string;
   public specialization?: string;
   public hospitalName?: string;
@@ -54,6 +56,12 @@ Doctor.init(
       type: DataTypes.VIRTUAL,
       get() {
         return (this as any).user?.fullName;
+      },
+    },
+    phone: {
+      type: DataTypes.VIRTUAL,
+      get() {
+        return (this as any).user?.phone;
       },
     },
     licenseNumber: {
