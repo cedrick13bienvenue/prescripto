@@ -96,8 +96,11 @@ export const medicalVisitSchema = Joi.object({
   visitDate: datePattern,
   visitType: Joi.string().valid('consultation', 'emergency', 'followup').required(),
   chiefComplaint: Joi.string().min(5).max(500).trim().required(),
+  symptoms: Joi.string().max(1000).trim().optional(),
   diagnosis: Joi.string().max(500).trim().optional(),
-  doctorNotes: Joi.string().max(1000).trim().optional(),
+  treatmentNotes: Joi.string().max(1000).trim().optional(),
+  recommendations: Joi.string().max(1000).trim().optional(),
+  hospitalName: Joi.string().max(100).trim().optional(),
   vitalSigns: Joi.object({
     bloodPressure: Joi.string().pattern(/^\d{2,3}\/\d{2,3}$/).optional(),
     heartRate: Joi.number().min(30).max(200).optional(),
@@ -122,6 +125,7 @@ export const prescriptionSchema = Joi.object({
   visitId: uuidPattern,
   diagnosis: Joi.string().min(5).max(500).trim().required(),
   doctorNotes: Joi.string().max(1000).trim().optional(),
+  hospitalName: Joi.string().max(100).trim().optional(),
   items: Joi.array().items(prescriptionItemSchema).min(1).max(10).required()
 });
 
