@@ -4,6 +4,7 @@ import { VisitType } from '../models/MedicalVisit';
 import { PrescriptionStatus } from '../models/Prescription';
 import { QRCodeService } from './qrCodeService';
 import { EmailService } from './emailService';
+import { sequelize } from '../database/config/database';
 import { 
   PatientRegistrationData, 
   PatientProfile, 
@@ -63,12 +64,15 @@ static async getAllPatients (limit: number = 10, offset: number = 0): Promise<{ 
 
   // Patient registration with reference number generation
   static async registerPatient (data: PatientRegistrationData): Promise<PatientProfile> {
+    // Use database transaction to ensure both user and patient are created together
+    const transaction = await sequelize.transaction();
+    
     try {
       // Hash password before creating user
       const tempUser = new User();
       const hashedPassword = await tempUser.hashPassword(data.password);
 
-      // Create user account first
+      // Create user account first within transaction
       const user = await User.create({
         email: data.email,
         passwordHash: hashedPassword,
@@ -76,12 +80,12 @@ static async getAllPatients (limit: number = 10, offset: number = 0): Promise<{ 
         role: UserRole.PATIENT,
         phone: data.phone,
         isActive: true,
-      });
+      }, { transaction });
 
       // Generate reference number manually to ensure it's created
       const referenceNumber = Patient.generateReferenceNumber();
 
-      // Create patient profile with explicit reference number
+      // Create patient profile with explicit reference number within transaction
       const patient = await Patient.create({
         userId: user.id,
         referenceNumber: referenceNumber,
@@ -94,12 +98,15 @@ static async getAllPatients (limit: number = 10, offset: number = 0): Promise<{ 
         existingConditions: data.existingConditions || [],
         emergencyContact: data.emergencyContact,
         emergencyPhone: data.emergencyPhone,
-      });
+      }, { transaction });
 
       // Verify the patient was created successfully
       if (!patient.referenceNumber) {
         throw new Error('Failed to generate patient reference number');
       }
+
+      // Commit the transaction if everything succeeds
+      await transaction.commit();
 
       return {
         id: patient.id,
@@ -118,12 +125,18 @@ static async getAllPatients (limit: number = 10, offset: number = 0): Promise<{ 
         updatedAt: patient.updatedAt,
       };
     } catch (error: any) {
+      // Rollback the transaction if anything fails
+      await transaction.rollback();
+      
       console.error('Error in registerPatient:', error);
       
       // Handle specific Sequelize errors
       if (error.name === 'SequelizeUniqueConstraintError') {
         if (error.errors && error.errors[0] && error.errors[0].path === 'email') {
           throw new Error('Email already exists. Please use a different email address.');
+        }
+        if (error.errors && error.errors[0] && error.errors[0].path === 'insurance_number') {
+          throw new Error('Insurance number already exists. Please use a different insurance number.');
         }
         throw new Error('A record with this information already exists.');
       }
@@ -260,18 +273,26 @@ static async getAllPatients (limit: number = 10, offset: number = 0): Promise<{ 
     
     // If not found by doctor ID, try to find by user ID
     if (!doctor) {
-      doctor = await Doctor.findOne({
+      // Find all doctors for this user and pick the one with specialization or the most recent one
+      const doctors = await Doctor.findAll({
         where: { userId: data.doctorId },
         include: [{
           association: 'user',
           attributes: ['email', 'fullName', 'phone']
-        }]
+        }],
+        order: [
+          ['specialization', 'DESC NULLS LAST'], // Prefer doctors with specialization
+          ['createdAt', 'DESC'] // Then by most recent
+        ]
       });
+      
+      doctor = doctors[0]; // Take the first one (best match)
     }
     
     if (!doctor) {
       throw new Error('Doctor not found');
     }
+
 
     const visit = await MedicalVisit.create({
       patientId: data.patientId,
@@ -285,7 +306,42 @@ static async getAllPatients (limit: number = 10, offset: number = 0): Promise<{ 
       recommendations: data.recommendations,
     });
 
-    return visit;
+
+    // If hospitalName is provided, update the doctor's hospitalName
+    if (data.hospitalName) {
+      await doctor.update({ hospitalName: data.hospitalName });
+    }
+
+    // Return visit with enhanced doctor and patient information
+    const visitWithDoctor = await MedicalVisit.findByPk(visit.id, {
+      include: [
+        {
+          model: Doctor,
+          as: 'doctor',
+          include: [{
+            model: User,
+            as: 'user',
+            attributes: ['email', 'fullName', 'phone']
+          }]
+        },
+        {
+          model: Patient,
+          as: 'patient',
+          include: [{
+            model: User,
+            as: 'user',
+            attributes: ['email', 'fullName']
+          }]
+        }
+      ]
+    });
+
+
+    if (!visitWithDoctor) {
+      throw new Error('Failed to retrieve medical visit');
+    }
+
+    return visitWithDoctor;
   }
 
   // Get patient medical history with pagination
@@ -413,13 +469,20 @@ static async getAllPatients (limit: number = 10, offset: number = 0): Promise<{ 
     
     // If not found by doctor ID, try to find by user ID
     if (!doctor) {
-      doctor = await Doctor.findOne({
+      // Find all doctors for this user and pick the one with specialization or the most recent one
+      const doctors = await Doctor.findAll({
         where: { userId: data.doctorId },
         include: [{
           association: 'user',
           attributes: ['email', 'fullName', 'phone']
-        }]
+        }],
+        order: [
+          ['specialization', 'DESC NULLS LAST'], // Prefer doctors with specialization
+          ['createdAt', 'DESC'] // Then by most recent
+        ]
       });
+      
+      doctor = doctors[0]; // Take the first one (best match)
     }
     
     if (!doctor) {
@@ -443,6 +506,11 @@ static async getAllPatients (limit: number = 10, offset: number = 0): Promise<{ 
       status: PrescriptionStatus.PENDING,
       qrCodeHash: `QR-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, // Temporary placeholder
     });
+
+    // If hospitalName is provided, update the doctor's hospitalName
+    if (data.hospitalName) {
+      await doctor.update({ hospitalName: data.hospitalName });
+    }
 
     // Create prescription items
     for (const itemData of data.items) {
@@ -502,7 +570,40 @@ static async getAllPatients (limit: number = 10, offset: number = 0): Promise<{ 
       // Don't throw error - prescription is still created successfully
     }
 
-    return prescription;
+    // Return prescription with enhanced doctor and patient information
+    const prescriptionWithDoctor = await Prescription.findByPk(prescription.id, {
+      include: [
+        {
+          model: Doctor,
+          as: 'doctor',
+          attributes: ['specialization', 'hospitalName'],
+          include: [{
+            model: User,
+            as: 'user',
+            attributes: ['email', 'fullName', 'phone']
+          }]
+        },
+        {
+          model: Patient,
+          as: 'patient',
+          include: [{
+            model: User,
+            as: 'user',
+            attributes: ['email', 'fullName']
+          }]
+        },
+        {
+          model: PrescriptionItem,
+          as: 'items'
+        }
+      ]
+    });
+
+    if (!prescriptionWithDoctor) {
+      throw new Error('Failed to retrieve prescription');
+    }
+
+    return prescriptionWithDoctor;
   }
 
   // Get patient prescriptions with pagination
