@@ -113,7 +113,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/DispenseResult"
+                $ref: "#/components/schemas/QRCodeScanResponse"
         400:
           description: Bad request - validation error
           content:
