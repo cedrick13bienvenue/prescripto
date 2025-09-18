@@ -44,6 +44,7 @@ export interface MedicalVisitData {
   diagnosis?: string;
   treatmentNotes?: string;
   recommendations?: string;
+  hospitalName?: string;
 }
 
 export interface PrescriptionData {
@@ -52,6 +53,7 @@ export interface PrescriptionData {
   visitId: string;
   diagnosis: string;
   doctorNotes?: string;
+  hospitalName?: string;
   items: PrescriptionItemData[];
 }
 
@@ -81,8 +83,17 @@ export interface MedicalVisitSummary {
     id: string;
     fullName: string;
     email: string;
+    phone?: string;
+    licenseNumber?: string;
     specialization?: string;
     hospitalName?: string;
+  };
+  patient: {
+    id: string;
+    fullName: string;
+    email: string;
+    insuranceProvider?: string;
+    insuranceNumber?: string;
   };
   createdAt: Date;
 }
@@ -98,8 +109,17 @@ export interface PrescriptionSummary {
     id: string;
     fullName: string;
     email: string;
+    phone?: string;
+    licenseNumber?: string;
     specialization?: string;
     hospitalName?: string;
+  };
+  patient: {
+    id: string;
+    fullName: string;
+    email: string;
+    insuranceProvider?: string;
+    insuranceNumber?: string;
   };
   createdAt: Date;
 }
