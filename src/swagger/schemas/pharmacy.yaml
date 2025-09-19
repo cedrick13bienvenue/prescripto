@@ -26,7 +26,7 @@ components:
           example: true
         message:
           type: string
-          example: "Prescription found successfully"
+          example: "Prescription looked up successfully"
         data:
           type: object
           properties:
@@ -61,6 +61,14 @@ components:
                   items:
                     type: object
                     properties:
+                      id:
+                        type: string
+                        format: uuid
+                        example: "123e4567-e89b-12d3-a456-426614174000"
+                      prescriptionId:
+                        type: string
+                        format: uuid
+                        example: "123e4567-e89b-12d3-a456-426614174000"
                       medicineName:
                         type: string
                         example: "Amoxicillin"
@@ -76,10 +84,37 @@ components:
                       instructions:
                         type: string
                         example: "Take with food"
+                      isDispensed:
+                        type: boolean
+                        example: false
+                      createdAt:
+                        type: string
+                        format: date-time
+                        example: "2024-12-01T10:30:00.000Z"
+                      updatedAt:
+                        type: string
+                        format: date-time
+                        example: "2024-12-01T10:30:00.000Z"
                 createdAt:
                   type: string
                   format: date-time
                   example: "2024-12-01T10:30:00.000Z"
+                qrCode:
+                  type: object
+                  properties:
+                    qrHash:
+                      type: string
+                      example: "abc123def456ghi789"
+                    isUsed:
+                      type: boolean
+                      example: false
+                    scanCount:
+                      type: integer
+                      example: 0
+                    expiresAt:
+                      type: string
+                      format: date-time
+                      example: "2024-12-08T10:30:00.000Z"
             canDispense:
               type: boolean
               example: true
@@ -93,58 +128,75 @@ components:
           example: true
         message:
           type: string
-          example: "Prescription validated successfully"
+          example: "Prescription scanned successfully"
         data:
           type: object
           properties:
-            id:
-              type: string
-              format: uuid
-              example: "123e4567-e89b-12d3-a456-426614174000"
-            prescriptionNumber:
-              type: string
-              example: "RX-20241201-1234"
-            status:
-              type: string
-              enum: [pending, scanned, validated, dispensed, rejected]
-              example: "validated"
-            doctor:
-              type: object
-              properties:
-                fullName:
-                  type: string
-                  example: "Dr. Michael Johnson"
-                email:
-                  type: string
-                  example: "michael.johnson@hospital.com"
-                phone:
-                  type: string
-                  example: "+250788123456"
-                specialization:
-                  type: string
-                  example: "General Medicine"
-                hospitalName:
-                  type: string
-                  example: "City General Hospital"
-            patient:
+            prescription:
               type: object
               properties:
                 id:
                   type: string
                   format: uuid
-                  example: "123e4567-e89b-12d3-a456-426614174001"
-                fullName:
+                  example: "123e4567-e89b-12d3-a456-426614174000"
+                prescriptionNumber:
+                  type: string
+                  example: "RX-20241201-1234"
+                patientName:
                   type: string
                   example: "Jane Smith"
-                email:
+                doctorName:
                   type: string
-                  example: "jane.smith@email.com"
-                insuranceProvider:
+                  example: "Dr. Michael Johnson"
+                diagnosis:
                   type: string
-                  example: "HealthPlus Insurance"
-                insuranceNumber:
+                  example: "Fever and bacterial infection"
+                doctorNotes:
                   type: string
-                  example: "HPI789012"
+                  example: "Take with food, complete full course"
+                status:
+                  type: string
+                  enum: [pending, scanned, validated, dispensed, rejected]
+                  example: "scanned"
+                items:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                        example: "123e4567-e89b-12d3-a456-426614174000"
+                      prescriptionId:
+                        type: string
+                        format: uuid
+                        example: "123e4567-e89b-12d3-a456-426614174000"
+                      medicineName:
+                        type: string
+                        example: "Amoxicillin"
+                      dosage:
+                        type: string
+                        example: "500mg"
+                      frequency:
+                        type: string
+                        example: "Twice daily"
+                      quantity:
+                        type: integer
+                        example: 20
+                      instructions:
+                        type: string
+                        example: "Take with food"
+                      isDispensed:
+                        type: boolean
+                        example: false
+                      createdAt:
+                        type: string
+                        format: date-time
+                        example: "2024-12-01T10:30:00.000Z"
+                      updatedAt:
+                        type: string
+                        format: date-time
+                        example: "2024-12-01T10:30:00.000Z"
                 createdAt:
                   type: string
                   format: date-time
