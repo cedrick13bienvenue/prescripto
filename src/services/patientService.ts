@@ -4,6 +4,7 @@ import { VisitType } from '../models/MedicalVisit';
 import { PrescriptionStatus } from '../models/Prescription';
 import { QRCodeService } from './qrCodeService';
 import { EmailService } from './emailService';
+import { eventService } from './eventService';
 import { sequelize } from '../database/config/database';
 import { 
   PatientRegistrationData, 
@@ -533,37 +534,54 @@ static async getAllPatients (limit: number = 10, offset: number = 0): Promise<{ 
         qrCodeHash: qrResult.qrHash
       });
 
-      // Send email to patient with QR code
+      // Emit prescription created event for background email processing
       try {
-        const patientWithUser = await Patient.findByPk(data.patientId, {
-          include: [{ association: 'user' }]
+        eventService.emitPrescriptionCreated({
+          prescriptionId: prescription.id,
+          patientId: data.patientId,
+          doctorId: data.doctorId,
+          prescriptionNumber: prescription.prescriptionNumber || '',
+          qrCodeHash: qrResult.qrHash,
+          qrCodeImage: qrResult.qrCodeImage,
+          expiresAt: qrResult.expiresAt.toISOString()
         });
+        console.log(`📧 Prescription created event emitted for prescription: ${prescription.id}`);
+      } catch (eventError) {
+        console.error('❌ Failed to emit prescription created event:', eventError);
+        
+        // Fallback: Send email directly if event system fails
+        try {
+          const patientWithUser = await Patient.findByPk(data.patientId, {
+            include: [{ association: 'user' }]
+          });
 
-        if (patientWithUser && (patientWithUser as any).user) {
-          const emailData = {
-            patientName: (patientWithUser as any).user.fullName,
-            patientEmail: (patientWithUser as any).user.email,
-            prescriptionNumber: prescription.prescriptionNumber || '',
-            doctorName: (doctor as any).user.fullName,
-            diagnosis: prescription.diagnosis,
-            medicines: data.items.map(item => ({
-              name: item.medicineName,
-              dosage: item.dosage,
-              frequency: item.frequency,
-              quantity: item.quantity,
-              instructions: item.instructions
-            })),
-            qrCodeImage: qrResult.qrCodeImage,
-            qrHash: qrResult.qrHash,
-            expiresAt: qrResult.expiresAt.toISOString()
-          };
+          if (patientWithUser && (patientWithUser as any).user) {
+            const emailData = {
+              patientName: (patientWithUser as any).user.fullName,
+              patientEmail: (patientWithUser as any).user.email,
+              prescriptionNumber: prescription.prescriptionNumber || '',
+              patientReferenceNumber: patientWithUser.referenceNumber || '',
+              doctorName: (doctor as any).user.fullName,
+              diagnosis: prescription.diagnosis,
+              medicines: data.items.map(item => ({
+                name: item.medicineName,
+                dosage: item.dosage,
+                frequency: item.frequency,
+                quantity: item.quantity,
+                instructions: item.instructions
+              })),
+              qrCodeImage: qrResult.qrCodeImage,
+              qrHash: qrResult.qrHash,
+              expiresAt: qrResult.expiresAt.toISOString()
+            };
 
-          await EmailService.sendPrescriptionEmail(emailData);
-          console.log(`✅ Prescription email sent to ${(patientWithUser as any).user.email}`);
+            await EmailService.sendPrescriptionEmail(emailData);
+            console.log(`✅ Prescription email sent directly (fallback) to ${(patientWithUser as any).user.email}`);
+          }
+        } catch (emailError) {
+          console.error('❌ Failed to send prescription email (fallback):', emailError);
+          // Don't throw error - prescription is still created successfully
         }
-      } catch (emailError) {
-        console.error('❌ Failed to send prescription email:', emailError);
-        // Don't throw error - prescription is still created successfully
       }
     } catch (qrError) {
       console.error('❌ Failed to generate QR code:', qrError);
