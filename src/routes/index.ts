@@ -5,10 +5,11 @@ import doctorRoutes from './doctors';
 import pharmacistRoutes from './pharmacists';
 import pharmacyRoutes from './pharmacy';
 import qrCodeRoutes from './qrCodes';
+import eventRoutes from './events';
 
 const routers = Router();
 
-const allRoutes = [authRoutes, patientRoutes, doctorRoutes, pharmacistRoutes, pharmacyRoutes, qrCodeRoutes];
+const allRoutes = [authRoutes, patientRoutes, doctorRoutes, pharmacistRoutes, pharmacyRoutes, qrCodeRoutes, eventRoutes];
 
 routers.use('/', ...allRoutes);
 
