@@ -184,6 +184,7 @@ router.post('/qr-codes/email/:prescriptionId', authenticateToken, requireRole([U
       patientName: (prescription as any).patient?.user?.fullName || '',
       patientEmail: (prescription as any).patient?.user?.email || '',
       prescriptionNumber: prescription.prescriptionNumber || '',
+      patientReferenceNumber: (prescription as any).patient?.referenceNumber || '',
       doctorName: (prescription as any).doctor?.user?.fullName || '',
       diagnosis: prescription.diagnosis,
       medicines: ((prescription as any).items || []).map((item: any) => ({
