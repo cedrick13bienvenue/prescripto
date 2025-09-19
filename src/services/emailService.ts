@@ -16,6 +16,7 @@ export interface PrescriptionEmailData {
   patientName: string;
   patientEmail: string;
   prescriptionNumber: string;
+  patientReferenceNumber: string;
   doctorName: string;
   diagnosis?: string;
   medicines: Array<{
@@ -319,6 +320,12 @@ export class EmailService {
             </p>
           </div>
 
+          <div style="text-align: center; margin: 20px 0;">
+            <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; display: inline-block;">
+              <p style="color: #6c757d; margin: 0;"><strong>Reference Number:</strong> ${data.patientReferenceNumber}</p>
+            </div>
+          </div>
+
           <div style="background-color: #e8f5e8; padding: 15px; border-radius: 5px; margin: 20px 0;">
             <h4 style="margin-top: 0; color: #27ae60;">Important Instructions</h4>
             <ul style="margin: 0; padding-left: 20px; color: #000000;">
@@ -368,6 +375,8 @@ PHARMACY INSTRUCTIONS:
 - Contact your doctor if you have any questions
 
 QR Code expires on: ${new Date(data.expiresAt).toLocaleDateString()}
+
+Reference Number: ${data.patientReferenceNumber}
 
 This is an automated message from MedConnect. Please do not reply to this email.
     `.trim();
