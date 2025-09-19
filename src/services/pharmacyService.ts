@@ -139,7 +139,36 @@ export class PharmacyService {
           diagnosis: prescription.diagnosis,
           doctorNotes: prescription.doctorNotes,
           status: prescription.status,
-          items: (prescription as any).items || [],
+          items: (prescription as any).items?.map((item: any) => {
+            const baseItem = {
+              id: item.id,
+              prescriptionId: item.prescriptionId,
+              medicineName: item.medicineName,
+              dosage: item.dosage,
+              frequency: item.frequency,
+              quantity: item.quantity,
+              instructions: item.instructions,
+              isDispensed: item.isDispensed,
+              createdAt: item.createdAt,
+              updatedAt: item.updatedAt
+            };
+            
+            // Only include dispensing fields if they have values
+            if (item.dispensedQuantity !== null && item.dispensedQuantity !== undefined) {
+              (baseItem as any).dispensedQuantity = item.dispensedQuantity;
+            }
+            if (item.unitPrice !== null && item.unitPrice !== undefined) {
+              (baseItem as any).unitPrice = item.unitPrice;
+            }
+            if (item.batchNumber !== null && item.batchNumber !== undefined) {
+              (baseItem as any).batchNumber = item.batchNumber;
+            }
+            if (item.expiryDate !== null && item.expiryDate !== undefined) {
+              (baseItem as any).expiryDate = item.expiryDate;
+            }
+            
+            return baseItem;
+          }) || [],
           createdAt: prescription.createdAt,
           qrCode: {
             qrHash: (prescription as any).qrCode?.qrHash,
@@ -149,7 +178,7 @@ export class PharmacyService {
           }
         },
         isValid: true,
-        message: 'Prescription found successfully',
+        message: 'Prescription looked up successfully',
         canDispense: prescription.status === PrescriptionStatus.PENDING || prescription.status === PrescriptionStatus.SCANNED
       };
     } catch (error: any) {
@@ -248,7 +277,36 @@ export class PharmacyService {
           diagnosis: prescription.diagnosis,
           doctorNotes: prescription.doctorNotes,
           status: prescription.status,
-          items: (prescription as any).items || [],
+          items: (prescription as any).items?.map((item: any) => {
+            const baseItem = {
+              id: item.id,
+              prescriptionId: item.prescriptionId,
+              medicineName: item.medicineName,
+              dosage: item.dosage,
+              frequency: item.frequency,
+              quantity: item.quantity,
+              instructions: item.instructions,
+              isDispensed: item.isDispensed,
+              createdAt: item.createdAt,
+              updatedAt: item.updatedAt
+            };
+            
+            // Only include dispensing fields if they have values
+            if (item.dispensedQuantity !== null && item.dispensedQuantity !== undefined) {
+              (baseItem as any).dispensedQuantity = item.dispensedQuantity;
+            }
+            if (item.unitPrice !== null && item.unitPrice !== undefined) {
+              (baseItem as any).unitPrice = item.unitPrice;
+            }
+            if (item.batchNumber !== null && item.batchNumber !== undefined) {
+              (baseItem as any).batchNumber = item.batchNumber;
+            }
+            if (item.expiryDate !== null && item.expiryDate !== undefined) {
+              (baseItem as any).expiryDate = item.expiryDate;
+            }
+            
+            return baseItem;
+          }) || [],
           createdAt: prescription.createdAt,
           qrCode: {
             qrHash: (prescription as any).qrCode?.qrHash,
@@ -258,7 +316,7 @@ export class PharmacyService {
           }
         },
         isValid: true,
-        message: 'Prescription validated successfully',
+        message: 'Prescription scanned successfully',
         canDispense
       };
     } catch (error: any) {
