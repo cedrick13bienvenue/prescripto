@@ -8,6 +8,7 @@ import {
 import { requireOTPVerification, generateOTPForPatient } from '../middleware/otpVerification';
 import { User, UserRole } from '../models';
 import { validateBody, validateQuery, validateParams } from '../middleware/validation';
+import { prescriptionRateLimiter, medicalHistoryRateLimiter, otpRateLimiter, registrationRateLimiter } from '../middleware/rateLimiter';
 import { 
   patientRegistrationSchema, 
   patientUpdateSchema, 
@@ -26,7 +27,7 @@ import {
 const router = Router();
 
 // Protected routes (authentication required)
-router.post('/patients/register', authenticateToken, requireRole([UserRole.ADMIN, UserRole.DOCTOR]), validateBody(patientRegistrationSchema), PatientController.registerPatient);
+router.post('/patients/register', registrationRateLimiter, authenticateToken, requireRole([UserRole.ADMIN, UserRole.DOCTOR]), validateBody(patientRegistrationSchema), PatientController.registerPatient);
 router.get('/patients/search', authenticateToken, requireRole([UserRole.ADMIN, UserRole.DOCTOR]), validateQuery(searchQuerySchema), PatientController.searchPatients);
 router.get('/patients/:patientId', authenticateToken, requireRole([UserRole.ADMIN, UserRole.DOCTOR]), validateParams(patientIdParamSchema), PatientController.getPatientById);
 router.put('/patients/:patientId', authenticateToken, requireRole([UserRole.ADMIN, UserRole.DOCTOR]), validateParams(patientIdParamSchema), validateBody(patientUpdateSchema), PatientController.updatePatient);
@@ -34,11 +35,11 @@ router.put('/patients/:patientId', authenticateToken, requireRole([UserRole.ADMI
 router.post('/patients/:patientId/otp', authenticateToken, requireRole([UserRole.PATIENT]), validateParams(patientIdParamSchema), generateOTPForPatient);
 
 // Medical history route with OTP verification
-router.get('/patients/:patientId/history', authenticateToken, requireRole([UserRole.DOCTOR, UserRole.ADMIN, UserRole.PATIENT]), validateParams(patientIdParamSchema), validateQuery(medicalHistoryPaginationSchema), requireOTPVerification, PatientController.getPatientMedicalHistory);
+router.get('/patients/:patientId/history', medicalHistoryRateLimiter, authenticateToken, requireRole([UserRole.DOCTOR, UserRole.ADMIN, UserRole.PATIENT]), validateParams(patientIdParamSchema), validateQuery(medicalHistoryPaginationSchema), requireOTPVerification, PatientController.getPatientMedicalHistory);
 
 // Doctor and Admin only routes
 router.post('/patients/:patientId/visits', authenticateToken, requireRole([UserRole.DOCTOR, UserRole.ADMIN]), validateParams(patientIdParamSchema), validateBody(medicalVisitSchema), PatientController.createMedicalVisit);
-router.post('/patients/:patientId/prescriptions', authenticateToken, requireRole([UserRole.DOCTOR, UserRole.ADMIN]), validateParams(patientIdParamSchema), validateBody(prescriptionSchema), PatientController.createPrescription);
+router.post('/patients/:patientId/prescriptions', prescriptionRateLimiter, authenticateToken, requireRole([UserRole.DOCTOR, UserRole.ADMIN]), validateParams(patientIdParamSchema), validateBody(prescriptionSchema), PatientController.createPrescription);
 router.get('/patients/:patientId/prescriptions', authenticateToken, requireRole([UserRole.DOCTOR, UserRole.ADMIN]), validateParams(patientIdParamSchema), validateQuery(advancedPaginationSchema), PatientController.getPatientPrescriptions);
 router.get('/patients', authenticateToken, requireDoctor, validateQuery(paginationSchema), PatientController.getAllPatients);
 
