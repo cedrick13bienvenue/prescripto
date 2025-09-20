@@ -81,7 +81,7 @@ cp env.example .env
 
 **Required Environment Variables:**
 
-```env
+````env
 # Database
 DB_HOST=localhost
 DB_PORT=5432
@@ -102,9 +102,6 @@ SMTP_PORT=587
 SMTP_USER=your_email@gmail.com
 SMTP_PASS=your_app_password
 
-# Frontend URL
-FRONTEND_URL=http://localhost:3000
-```
 
 ### 3. Database Setup
 
@@ -114,7 +111,7 @@ npm run db:migrate
 
 # Seed with admin user
 npm run db:seed
-```
+````
 
 ### 4. Start Development Server
 
@@ -164,7 +161,6 @@ src/
 ├── swagger/             # API documentation
 │   ├── paths/
 │   └── schemas/
-├── tests/               # Test files
 ├── types/               # TypeScript type definitions
 ├── utils/               # Utility functions
 └── validation/          # Input validation schemas
@@ -277,6 +273,7 @@ npm run cleanup-tokens      # Clean up expired JWT tokens
 - **Validation**: Joi
 - **Documentation**: Swagger/OpenAPI
 - **Events**: Node.js EventEmitter
+- **Rate Limiting**: express-rate-limit
 
 ### Development Tools
 
@@ -295,6 +292,75 @@ npm run cleanup-tokens      # Clean up expired JWT tokens
 - **Input validation** with Joi schemas
 - **CORS protection** for cross-origin requests
 - **Role-based access control** throughout the system
+- **Comprehensive rate limiting** with role-based limits
+- **API abuse protection** with multiple rate limiting strategies
+
+## Rate Limiting System
+
+The MedConnect API implements comprehensive rate limiting to prevent abuse and ensure fair usage across all endpoints.
+
+### Rate Limiting Strategies
+
+#### Global Rate Limiting
+
+- **Basic Protection**: 100 requests per 15 minutes per IP
+- **Applied to**: All API endpoints
+- **Purpose**: Prevent basic abuse and DDoS attacks
+
+#### Authentication Endpoints
+
+- **Login Attempts**: 5 attempts per 15 minutes per IP
+- **Password Reset**: 3 attempts per hour per IP
+- **Registration**: 3 attempts per hour per IP
+- **OTP Requests**: 3 requests per 5 minutes per IP
+
+#### Role-Based Rate Limiting
+
+- **Admin**: 100 requests per minute
+- **Doctor**: 50 requests per minute
+- **Pharmacist**: 30 requests per minute
+- **Patient**: 20 requests per minute
+- **Anonymous**: 10 requests per minute
+
+#### Endpoint-Specific Limits
+
+- **Prescription Creation**: 10 per minute per user
+- **QR Code Scanning**: 20 per minute per user
+- **Pharmacy Operations**: 15 per minute per user
+- **Email Sending**: 5 per minute per user
+- **Medical History Access**: 10 per minute per user
+- **Event Management**: 30 per minute per user
+
+### Rate Limit Headers
+
+All rate-limited endpoints return standard headers:
+
+- `X-RateLimit-Limit`: Maximum requests allowed
+- `X-RateLimit-Remaining`: Remaining requests in current window
+- `X-RateLimit-Reset`: Time when the rate limit resets
+
+### Rate Limit Response
+
+When rate limits are exceeded, the API returns:
+
+```json
+{
+  "success": false,
+  "error": {
+    "message": "Too many requests, please try again later.",
+    "statusCode": 429,
+    "type": "RATE_LIMIT_EXCEEDED"
+  }
+}
+```
+
+### Monitoring and Management
+
+- **Real-time Monitoring**: Track rate limit usage across all endpoints
+- **Automatic Cleanup**: Completed rate limit windows are automatically cleared
+- **Configurable Limits**: Easy adjustment of limits based on usage patterns
+- **IP-based Tracking**: Separate limits for different IP addresses
+- **User-based Tracking**: Additional limits based on authenticated users
 
 ## Email Features
 
