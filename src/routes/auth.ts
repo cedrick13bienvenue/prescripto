@@ -8,13 +8,14 @@ import {
 import { UserRole } from '../models';
 import { validateBody, validateParams } from '../middleware/validation';
 import { userLoginSchema, passwordChangeSchema, userIdParamSchema, passwordResetRequestSchema, passwordResetSchema } from '../validation/schemas';
+import { authRateLimiter, registrationRateLimiter, passwordResetRateLimiter, otpRateLimiter } from '../middleware/rateLimiter';
 
 const router = Router();
 
-// Public routes - login and password reset
-router.post('/auth/login', validateBody(userLoginSchema), AuthController.login);
-router.post('/auth/forgot-password', validateBody(passwordResetRequestSchema), AuthController.requestPasswordReset);
-router.post('/auth/reset-password', validateBody(passwordResetSchema), AuthController.resetPassword);
+// Public routes - login and password reset (with rate limiting)
+router.post('/auth/login', authRateLimiter, validateBody(userLoginSchema), AuthController.login);
+router.post('/auth/forgot-password', passwordResetRateLimiter, validateBody(passwordResetRequestSchema), AuthController.requestPasswordReset);
+router.post('/auth/reset-password', passwordResetRateLimiter, validateBody(passwordResetSchema), AuthController.resetPassword);
 
 // Protected routes
 router.get('/auth/profile', authenticateToken, requireRole([UserRole.DOCTOR, UserRole.ADMIN]), AuthController.getProfile);
