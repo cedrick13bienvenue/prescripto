@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { authenticateToken, requireRole } from '../middleware/auth';
 import { UserRole } from '../models';
 import { eventService } from '../services/eventService';
+import { eventRateLimiter } from '../middleware/rateLimiter';
 
 const router = Router();
 
@@ -9,7 +10,7 @@ const router = Router();
  * Get email queue status
  * GET /api/v1/events/email-queue/status
  */
-router.get('/events/email-queue/status', authenticateToken, requireRole([UserRole.ADMIN]), async (req: Request, res: Response) => {
+router.get('/events/email-queue/status', eventRateLimiter, authenticateToken, requireRole([UserRole.ADMIN]), async (req: Request, res: Response) => {
   try {
     const status = eventService.getQueueStatus();
     
@@ -38,7 +39,7 @@ router.get('/events/email-queue/status', authenticateToken, requireRole([UserRol
  * Clear completed email jobs
  * POST /api/v1/events/email-queue/clear-completed
  */
-router.post('/events/email-queue/clear-completed', authenticateToken, requireRole([UserRole.ADMIN]), async (req: Request, res: Response) => {
+router.post('/events/email-queue/clear-completed', eventRateLimiter, authenticateToken, requireRole([UserRole.ADMIN]), async (req: Request, res: Response) => {
   try {
     eventService.clearCompletedJobs();
     
@@ -65,7 +66,7 @@ router.post('/events/email-queue/clear-completed', authenticateToken, requireRol
  * Test event emission
  * POST /api/v1/events/test
  */
-router.post('/events/test', authenticateToken, requireRole([UserRole.ADMIN]), async (req: Request, res: Response) => {
+router.post('/events/test', eventRateLimiter, authenticateToken, requireRole([UserRole.ADMIN]), async (req: Request, res: Response) => {
   try {
     const { eventType, data } = req.body;
     
