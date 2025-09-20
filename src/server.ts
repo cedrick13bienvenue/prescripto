@@ -6,6 +6,7 @@ import './models';
 import { routers } from './routes';
 import { swaggerRouter } from './routes/swaggerRoutes';
 import { sanitizeInput } from './middleware/validation';
+import { basicRateLimiter, rateLimitMonitor } from './middleware/rateLimiter';
 
 // Load environment variables
 dotenv.config();
@@ -17,6 +18,10 @@ const PORT = process.env['PORT'] || 3000;
 app.use(cors());
 app.use(express.json());
 app.use(sanitizeInput);
+
+// Global rate limiting
+app.use(basicRateLimiter);
+app.use(rateLimitMonitor);
 
 // Serve static files from public directory
 app.use(express.static('public'));
