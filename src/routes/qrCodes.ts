@@ -8,6 +8,7 @@ import { Prescription } from '../models';
 import { validateParams, validateQuery } from '../middleware/validation';
 import { prescriptionIdParamSchema, advancedPaginationSchema } from '../validation/schemas';
 import { createPaginationResponse } from '../types/common';
+import { emailRateLimiter } from '../middleware/rateLimiter';
 
 const router = Router();
 
@@ -128,7 +129,7 @@ router.get('/qr-codes/stats/:qrHash', authenticateToken, requireRole([UserRole.D
  * Send prescription email with QR code
  * POST /api/v1/qr-codes/email/:prescriptionId
  */
-router.post('/qr-codes/email/:prescriptionId', authenticateToken, requireRole([UserRole.DOCTOR, UserRole.ADMIN]), validateParams(prescriptionIdParamSchema), async (req: Request, res: Response) => {
+router.post('/qr-codes/email/:prescriptionId', emailRateLimiter, authenticateToken, requireRole([UserRole.DOCTOR, UserRole.ADMIN]), validateParams(prescriptionIdParamSchema), async (req: Request, res: Response) => {
   try {
     const { prescriptionId } = req.params;
 
