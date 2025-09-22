@@ -22,6 +22,13 @@ const createRateLimitResponse = (message: string) => ({
   }
 });
 
+// Helper function to safely get client IP (handles IPv6)
+const getClientIP = (req: Request): string => {
+  const forwarded = req.headers['x-forwarded-for'] as string;
+  const ip = forwarded ? forwarded.split(',')[0] : req.ip;
+  return ip || 'unknown';
+};
+
 // Get rate limit based on user role
 const getRoleBasedRateLimit = (userRole: UserRole): RateLimitConfig => {
   const baseConfig = {
@@ -95,7 +102,7 @@ export const otpRateLimiter = rateLimit({
 export const prescriptionRateLimiter = rateLimit({
   windowMs: 60 * 1000, // 1 minute
   max: 10, // limit each user to 10 prescriptions per minute
-  keyGenerator: (req: Request) => (req as any).user?.id || req.ip,
+  keyGenerator: (req: Request) => (req as any).user?.id || getClientIP(req),
   message: createRateLimitResponse('Too many prescription operations, please slow down.'),
   standardHeaders: true,
   legacyHeaders: false,
@@ -105,7 +112,7 @@ export const prescriptionRateLimiter = rateLimit({
 export const qrScanRateLimiter = rateLimit({
   windowMs: 60 * 1000, // 1 minute
   max: 20, // limit each user to 20 scans per minute
-  keyGenerator: (req: Request) => (req as any).user?.id || req.ip,
+  keyGenerator: (req: Request) => (req as any).user?.id || getClientIP(req),
   message: createRateLimitResponse('Too many QR code scans, please slow down.'),
   standardHeaders: true,
   legacyHeaders: false,
@@ -115,7 +122,7 @@ export const qrScanRateLimiter = rateLimit({
 export const pharmacyRateLimiter = rateLimit({
   windowMs: 60 * 1000, // 1 minute
   max: 15, // limit each user to 15 pharmacy operations per minute
-  keyGenerator: (req: Request) => (req as any).user?.id || req.ip,
+  keyGenerator: (req: Request) => (req as any).user?.id || getClientIP(req),
   message: createRateLimitResponse('Too many pharmacy operations, please slow down.'),
   standardHeaders: true,
   legacyHeaders: false,
@@ -125,7 +132,7 @@ export const pharmacyRateLimiter = rateLimit({
 export const emailRateLimiter = rateLimit({
   windowMs: 60 * 1000, // 1 minute
   max: 5, // limit each user to 5 emails per minute
-  keyGenerator: (req: Request) => (req as any).user?.id || req.ip,
+  keyGenerator: (req: Request) => (req as any).user?.id || getClientIP(req),
   message: createRateLimitResponse('Too many email requests, please slow down.'),
   standardHeaders: true,
   legacyHeaders: false,
@@ -135,7 +142,7 @@ export const emailRateLimiter = rateLimit({
 export const medicalHistoryRateLimiter = rateLimit({
   windowMs: 60 * 1000, // 1 minute
   max: 10, // limit each user to 10 history requests per minute
-  keyGenerator: (req: Request) => (req as any).user?.id || req.ip,
+  keyGenerator: (req: Request) => (req as any).user?.id || getClientIP(req),
   message: createRateLimitResponse('Too many medical history requests, please slow down.'),
   standardHeaders: true,
   legacyHeaders: false,
@@ -145,7 +152,7 @@ export const medicalHistoryRateLimiter = rateLimit({
 export const eventRateLimiter = rateLimit({
   windowMs: 60 * 1000, // 1 minute
   max: 30, // limit each user to 30 event operations per minute
-  keyGenerator: (req: Request) => (req as any).user?.id || req.ip,
+  keyGenerator: (req: Request) => (req as any).user?.id || getClientIP(req),
   message: createRateLimitResponse('Too many event management requests, please slow down.'),
   standardHeaders: true,
   legacyHeaders: false,
@@ -157,7 +164,7 @@ export const createRoleBasedRateLimiter = (userRole: UserRole) => {
   
   return rateLimit({
     ...config,
-    keyGenerator: (req: Request) => (req as any).user?.id || req.ip,
+    keyGenerator: (req: Request) => (req as any).user?.id || getClientIP(req),
     message: createRateLimitResponse(`Rate limit exceeded for ${userRole.toLowerCase()} role.`),
     standardHeaders: true,
     legacyHeaders: false,
@@ -168,7 +175,7 @@ export const createRoleBasedRateLimiter = (userRole: UserRole) => {
 export const sensitiveOperationRateLimiter = rateLimit({
   windowMs: 5 * 60 * 1000, // 5 minutes
   max: 5, // limit each user to 5 sensitive operations per 5 minutes
-  keyGenerator: (req: Request) => `${req.ip}:${(req as any).user?.id || 'anonymous'}`,
+  keyGenerator: (req: Request) => `${getClientIP(req)}:${(req as any).user?.id || 'anonymous'}`,
   message: createRateLimitResponse('Too many sensitive operations, please try again later.'),
   standardHeaders: true,
   legacyHeaders: false,
@@ -178,7 +185,7 @@ export const sensitiveOperationRateLimiter = rateLimit({
 export const apiKeyRateLimiter = rateLimit({
   windowMs: 60 * 1000, // 1 minute
   max: 100, // limit each API key to 100 requests per minute
-  keyGenerator: (req: Request) => (req.headers['x-api-key'] as string) || req.ip || 'unknown',
+  keyGenerator: (req: Request) => (req.headers['x-api-key'] as string) || getClientIP(req),
   message: createRateLimitResponse('API rate limit exceeded, please try again later.'),
   standardHeaders: true,
   legacyHeaders: false,
@@ -190,7 +197,7 @@ export const createTrustedIPRateLimiter = (trustedIPs: string[]) => {
     windowMs: 60 * 1000,
     max: 1000, // Higher limit for trusted IPs
     keyGenerator: (req: Request) => {
-      const clientIP = req.ip || 'unknown';
+      const clientIP = getClientIP(req);
       return trustedIPs.includes(clientIP) ? `trusted:${clientIP}` : clientIP;
     },
     message: createRateLimitResponse('Rate limit exceeded.'),
@@ -201,7 +208,7 @@ export const createTrustedIPRateLimiter = (trustedIPs: string[]) => {
 
 // Rate limit monitoring middleware
 export const rateLimitMonitor = (req: Request, res: Response, next: any) => {
-  const clientIP = req.ip;
+  const clientIP = getClientIP(req);
   const userID = (req as any).user?.id;
   const endpoint = req.path;
   const method = req.method;
