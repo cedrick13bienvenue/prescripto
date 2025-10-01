@@ -30,7 +30,14 @@
     "test:services": "jest tests/services/",
     "test:controllers": "jest tests/controllers/",
     "test:models": "jest tests/models/",
-    "cleanup-tokens": "ts-node src/utils/tokenCleanup.ts"
+    "cleanup-tokens": "ts-node src/utils/tokenCleanup.ts",
+    "pm2:start": "pm2 start ecosystem.config.js --env production",
+"pm2:dev": "pm2 start ecosystem.config.js --env development",
+"pm2:stop": "pm2 stop medconnect-api",
+"pm2:restart": "pm2 restart medconnect-api",
+"pm2:logs": "pm2 logs medconnect-api",
+"pm2:monit": "pm2 monit",
+"pm2:delete": "pm2 delete medconnect-api"
   },
   "keywords": [
     "healthcare",
