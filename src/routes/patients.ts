@@ -42,6 +42,13 @@ router.post('/patients/:patientId/visits', authenticateToken, requireRole([UserR
 router.post('/patients/:patientId/prescriptions', prescriptionRateLimiter, authenticateToken, requireRole([UserRole.DOCTOR, UserRole.ADMIN]), validateParams(patientIdParamSchema), validateBody(prescriptionSchema), PatientController.createPrescription);
 router.get('/patients/:patientId/prescriptions', authenticateToken, requireRole([UserRole.DOCTOR, UserRole.ADMIN]), validateParams(patientIdParamSchema), validateQuery(advancedPaginationSchema), PatientController.getPatientPrescriptions);
 router.get('/patients', authenticateToken, requireDoctor, validateQuery(paginationSchema), PatientController.getAllPatients);
+router.get(
+  '/patients/prescriptions', 
+  authenticateToken, 
+  requireRole([UserRole.DOCTOR, UserRole.ADMIN]), 
+  validateQuery(advancedPaginationSchema), 
+  PatientController.getAllPrescriptions
+);
 
 // Cross-hospital lookup (any authenticated user)
 router.get('/patients/reference/:referenceNumber', authenticateToken, validateParams(referenceNumberParamSchema), PatientController.getPatientByReference);
