@@ -667,6 +667,94 @@ static async getAllPatients (limit: number = 10, offset: number = 0): Promise<{ 
     };
   }
 
+  // Get all prescriptions with pagination (doctor and admin only)
+static async getAllPrescriptions(
+  limit: number = 10, 
+  offset: number = 0, 
+  sortBy: string = 'createdAt', 
+  sortOrder: 'ASC' | 'DESC' = 'DESC',
+  status?: string
+): Promise<{ prescriptions: any[], total: number }> {
+  const whereClause: any = {};
+  
+  // Filter by status if provided
+  if (status && ['pending', 'fulfilled', 'cancelled'].includes(status)) {
+    whereClause.status = status;
+  }
+
+  const { count, rows: prescriptions } = await Prescription.findAndCountAll({
+    where: whereClause,
+    include: [
+      {
+        model: Doctor,
+        as: 'doctor',
+        attributes: ['specialization', 'hospitalName'],
+        include: [{
+          model: User,
+          as: 'user',
+          attributes: ['fullName', 'email', 'phone']
+        }]
+      },
+      {
+        model: Patient,
+        as: 'patient',
+        attributes: ['referenceNumber', 'fullName', 'insuranceProvider', 'insuranceNumber'],
+        include: [{
+          model: User,
+          as: 'user',
+          attributes: ['email']
+        }]
+      },
+      {
+        model: PrescriptionItem,
+        as: 'items',
+      },
+    ],
+    order: [[sortBy, sortOrder]],
+    limit,
+    offset,
+  });
+
+  const prescriptionData = prescriptions.map(prescription => ({
+    id: prescription.id,
+    prescriptionNumber: prescription.prescriptionNumber,
+    diagnosis: prescription.diagnosis,
+    doctorNotes: prescription.doctorNotes,
+    status: prescription.status,
+    qrCodeHash: prescription.qrCodeHash,
+    items: (prescription as any).items?.map((item: any) => ({
+      id: item.id,
+      medicineName: item.medicineName,
+      dosage: item.dosage,
+      frequency: item.frequency,
+      quantity: item.quantity,
+      instructions: item.instructions
+    })) || [],
+    doctor: {
+      fullName: (prescription as any).doctor?.user?.fullName,
+      email: (prescription as any).doctor?.user?.email,
+      phone: (prescription as any).doctor?.user?.phone,
+      specialization: (prescription as any).doctor?.specialization,
+      hospitalName: (prescription as any).doctor?.hospitalName
+    },
+    patient: {
+      id: (prescription as any).patient?.id,
+      referenceNumber: (prescription as any).patient?.referenceNumber,
+      fullName: (prescription as any).patient?.fullName,
+      email: (prescription as any).patient?.user?.email,
+      insuranceProvider: (prescription as any).patient?.insuranceProvider,
+      insuranceNumber: (prescription as any).patient?.insuranceNumber
+    },
+    createdAt: prescription.createdAt,
+    updatedAt: prescription.updatedAt
+  }));
+
+  return {
+    prescriptions: prescriptionData,
+    total: count,
+  };
+}
+
   // Search patients by name or reference number
   static async searchPatients (query: string): Promise<PatientProfile[]> {
     const { Op } = require('sequelize');
