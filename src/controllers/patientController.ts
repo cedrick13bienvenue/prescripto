@@ -611,6 +611,46 @@ static async getAllPatients (req: Request, res: Response) {
     }
   }
 
+  // Get all prescriptions (doctor and admin only)
+static async getAllPrescriptions(req: Request, res: Response) {
+  try {
+    const { page = 1, limit = 10, sortBy = 'createdAt', sortOrder = 'DESC', status } = req.query;
+    const pageNum = parseInt(page as string);
+    const limitNum = parseInt(limit as string);
+    const offset = (pageNum - 1) * limitNum;
+
+    const result = await PatientService.getAllPrescriptions(
+      limitNum, 
+      offset, 
+      sortBy as string, 
+      sortOrder as 'ASC' | 'DESC',
+      status as string | undefined
+    );
+
+    res.status(200).json({
+      success: true,
+      data: result.prescriptions,
+      pagination: {
+        page: pageNum,
+        limit: limitNum,
+        total: result.total,
+        totalPages: Math.ceil(result.total / limitNum),
+        hasNextPage: pageNum < Math.ceil(result.total / limitNum),
+        hasPrevPage: pageNum > 1,
+      },
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      error: {
+        message: error.message,
+        statusCode: 500,
+      },
+    });
+  }
+}
+
+
   // Search patients
   static async searchPatients (req: Request, res: Response) {
     try {
