@@ -158,6 +158,86 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /patients/prescriptions:
+    get:
+      tags:
+        - Patients
+      summary: Get all prescriptions
+      description: Retrieve a paginated list of all prescriptions in the system - requires doctor or admin authentication
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: Page number for pagination
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+          description: Number of prescriptions per page (max 100)
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+            enum: ["createdAt", "updatedAt", "prescriptionNumber"]
+            default: "createdAt"
+          description: Field to sort by
+        - name: sortOrder
+          in: query
+          schema:
+            type: string
+            enum: ["ASC", "DESC"]
+            default: "DESC"
+          description: Sort order
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: ["pending", "fulfilled", "cancelled"]
+          description: Filter by prescription status (optional)
+      responses:
+        200:
+          description: Prescriptions retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/PrescriptionResponse"
+                  pagination:
+                    $ref: "#/components/schemas/Pagination"
+        401:
+          description: Unauthorized - token required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        403:
+          description: Forbidden - doctor/admin role required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        500:
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
   /patients/reference/{referenceNumber}:
     get:
       tags:
